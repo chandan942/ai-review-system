@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.review import router as review_router
+from backend.routes.review import router as review_router
 
 app = FastAPI(
     title="AI Code Reviewer",

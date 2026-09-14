@@ -1,26 +1,37 @@
-from models import ReviewIssue, ReviewResponse
+import os
+
+from dotenv import load_dotenv
+from google import genai
+
+from backend.models import ReviewResponse
+
+load_dotenv()
+
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    raise RuntimeError("GEMINI_API_KEY is missing from .env")
+
+client = genai.Client(api_key=api_key)
 
 
 def mock_review(code: str, language: str) -> ReviewResponse:
-    """
-    Mock reviewer that returns fake review results.
-    This will be replaced with real AI (Gemini/OpenAI) later.
-    """
-    mock_summary = "The code looks okay, but there are a few improvements needed."
+    prompt = (
+        "You are an expert software engineer and code reviewer.\n\n"
+        f"Review this {language} code:\n\n"
+        f"{code}\n\n"
+        "Find real and meaningful bugs, security vulnerabilities, "
+        "code quality problems, performance problems, maintainability "
+        "issues, and best-practice violations.\n\n"
+        "Give a clear overall summary of the code."
+    )
 
-    mock_issues = [
-        ReviewIssue(
-            line=1,
-            message="Variable name is too vague",
-            severity="Low",
-            suggestion="Change 'x' to 'user_age'",
-        ),
-        ReviewIssue(
-            line=5,
-            message="Potential SQL Injection vulnerability",
-            severity="Critical",
-            suggestion="Use parameterized queries instead of f-strings",
-        ),
-    ]
+    response = client.models.generate_content(
+    model="gemini-3.5-flash-lite",
+    contents=prompt,
+)
 
-    return ReviewResponse(summary=mock_summary, issues=mock_issues)
+    return ReviewResponse(
+        summary=response.text or "No review was returned.",
+        issues=[],
+    )

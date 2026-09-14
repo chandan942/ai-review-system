@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from models import CodeRequest, ReviewResponse
-from services.reviewer import mock_review
+from backend.models import CodeRequest, ReviewResponse
+from backend.services.reviewer import mock_review
 
 router = APIRouter()
 
