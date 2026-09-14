@@ -2,8 +2,10 @@ import os
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 from backend.models import ReviewResponse
+
 
 load_dotenv()
 
@@ -15,23 +17,38 @@ if not api_key:
 client = genai.Client(api_key=api_key)
 
 
-def mock_review(code: str, language: str) -> ReviewResponse:
+def review_code(code: str, language: str) -> ReviewResponse:
     prompt = (
         "You are an expert software engineer and code reviewer.\n\n"
-        f"Review this {language} code:\n\n"
+        f"Review the following {language} code:\n\n"
         f"{code}\n\n"
-        "Find real and meaningful bugs, security vulnerabilities, "
-        "code quality problems, performance problems, maintainability "
-        "issues, and best-practice violations.\n\n"
-        "Give a clear overall summary of the code."
+        "Analyze the code for:\n"
+        "- Bugs and logical errors\n"
+        "- Security vulnerabilities\n"
+        "- Code quality problems\n"
+        "- Performance problems\n"
+        "- Maintainability issues\n"
+        "- Best-practice violations\n\n"
+        "For every real issue, provide:\n"
+        "- The line number\n"
+        "- A clear explanation\n"
+        "- Severity: Low, Medium, High, or Critical\n"
+        "- A practical suggestion\n\n"
+        "Do not invent problems. Only report issues that are reasonably "
+        "supported by the submitted code.\n\n"
+        "Return only the requested structured review."
     )
 
     response = client.models.generate_content(
-    model="gemini-3.5-flash-lite",
-    contents=prompt,
-)
-
-    return ReviewResponse(
-        summary=response.text or "No review was returned.",
-        issues=[],
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=ReviewResponse,
+        ),
     )
+
+    if not response.text:
+        raise RuntimeError("Gemini returned an empty response.")
+
+    return ReviewResponse.model_validate_json(response.text)
