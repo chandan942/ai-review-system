@@ -7,14 +7,19 @@ from google.genai import types
 from backend.models import ReviewResponse
 
 
-load_dotenv()
+_client = None
 
-api_key = os.getenv("GEMINI_API_KEY")
 
-if not api_key:
-    raise RuntimeError("GEMINI_API_KEY is missing from .env")
-
-client = genai.Client(api_key=api_key)
+def _get_client() -> genai.Client:
+    """Lazily create the Gemini client on first real API call."""
+    global _client
+    if _client is None:
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY is missing from .env")
+        _client = genai.Client(api_key=api_key)
+    return _client
 
 
 def review_code(code: str, language: str) -> ReviewResponse:
@@ -39,7 +44,7 @@ def review_code(code: str, language: str) -> ReviewResponse:
         "Return only the requested structured review."
     )
 
-    response = client.models.generate_content(
+    response = _get_client().models.generate_content(
         model="gemini-3.5-flash-lite",
         contents=prompt,
         config=types.GenerateContentConfig(
