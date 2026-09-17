@@ -1,59 +1,24 @@
-import os
-
-from dotenv import load_dotenv
-from google import genai
-from google.genai import types
-
+from backend.config import get_settings
 from backend.models import ReviewResponse
+from backend.services.providers.base import BaseReviewProvider
+from backend.services.providers.gemini import GeminiReviewProvider
+from backend.services.providers.mock import MockReviewProvider
 
 
-_client = None
+def get_provider(provider_name: str | None = None) -> BaseReviewProvider:
+    """Factory function to instantiate the selected review provider."""
+    selected = provider_name or get_settings().review_provider
+    selected_lower = selected.lower().strip()
 
-
-def _get_client() -> genai.Client:
-    """Lazily create the Gemini client on first real API call."""
-    global _client
-    if _client is None:
-        load_dotenv()
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise RuntimeError("GEMINI_API_KEY is missing from .env")
-        _client = genai.Client(api_key=api_key)
-    return _client
+    if selected_lower == "gemini":
+        return GeminiReviewProvider()
+    elif selected_lower == "mock":
+        return MockReviewProvider()
+    else:
+        raise ValueError(f"Unsupported review provider: '{selected}'")
 
 
 def review_code(code: str, language: str) -> ReviewResponse:
-    prompt = (
-        "You are an expert software engineer and code reviewer.\n\n"
-        f"Review the following {language} code:\n\n"
-        f"{code}\n\n"
-        "Analyze the code for:\n"
-        "- Bugs and logical errors\n"
-        "- Security vulnerabilities\n"
-        "- Code quality problems\n"
-        "- Performance problems\n"
-        "- Maintainability issues\n"
-        "- Best-practice violations\n\n"
-        "For every real issue, provide:\n"
-        "- The line number\n"
-        "- A clear explanation\n"
-        "- Severity: Low, Medium, High, or Critical\n"
-        "- A practical suggestion\n\n"
-        "Do not invent problems. Only report issues that are reasonably "
-        "supported by the submitted code.\n\n"
-        "Return only the requested structured review."
-    )
-
-    response = _get_client().models.generate_content(
-        model="gemini-3.5-flash-lite",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ReviewResponse,
-        ),
-    )
-
-    if not response.text:
-        raise RuntimeError("Gemini returned an empty response.")
-
-    return ReviewResponse.model_validate_json(response.text)
+    """Delegate review execution to configured provider."""
+    provider = get_provider()
+    return provider.review_code(code, language)

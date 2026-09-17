@@ -433,13 +433,13 @@ Detailed project documentation is maintained inside the `docs/` directory.
 
 ## Phase 2 — AI Integration
 
-- [ ] Integrate selected AI model
-- [ ] Design review prompts
-- [ ] Build AI review pipeline
-- [ ] Generate structured AI responses
-- [ ] Add issue categorization
-- [ ] Add review scoring
-- [ ] Improve review accuracy
+- [x] Integrate selected AI model (Gemini 2.5 Flash API)
+- [x] Design line-numbered review prompts
+- [x] Build modular AI review pipeline & provider pattern
+- [x] Generate structured AI responses (JSON schema mapping)
+- [x] Add issue categorization & severity levels
+- [x] Add provider fallback & mock review support
+- [x] Add timeout handling (30s limit)
 
 ## Phase 3 — Frontend
 
