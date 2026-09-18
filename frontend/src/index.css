@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+:root {
+  --font-sans: 'Geist', 'Inter', 'SF Pro Text', 'system-ui', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Geist Mono', 'SF Mono', monospace;
+}
+
+body {
+  @apply bg-surface text-white font-sans antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-sans tracking-tight;
+}
+
+code {
+  @apply font-mono tabular-nums;
+}
