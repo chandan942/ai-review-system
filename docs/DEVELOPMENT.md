@@ -2,7 +2,7 @@
 ## AI Code Review System
 
 **Version:** 1.0  
-**Date:** 2026-09-14  
+**Date:** 2026-09-18  
 **Status:** Active  
 
 ---
@@ -16,22 +16,22 @@ This plan converts the PRD, SRS, Architecture, and UI/UX documents into an actio
 | Phase | Name | Status | Est. Effort | Dependencies |
 |---|---|---|---|---|
 | **Phase 1** | Backend Foundation | ✅ **DONE** | — | None |
-| **Phase 2** | AI Integration | 🔲 Next | 2-3 days | Phase 1 |
-| **Phase 3** | Frontend | 🔲 | 3-4 days | Phase 1 (Phase 2 optional — can use mock) |
+| **Phase 2** | AI Integration | ✅ **DONE** | — | Phase 1 |
+| **Phase 3** | Frontend | 🔲 **NOT STARTED** | 3-4 days | Phase 1 (Phase 2 optional — can use mock) |
 | **Phase 4** | Polish & Edge Cases | 🔲 | 2 days | Phase 2 + 3 |
 | **Phase 5** | GitHub PR Integration | 🔲 | 3-4 days | Phase 2 |
-| **Phase 6** | Testing & Deployment | 🔲 | 2-3 days | Phase 4 |
+| **Phase 6** | Testing & Deployment | ✅ **PARTIAL** (Testing done, Deployment pending) | 2-3 days | Phase 4 |
 
 ### Dependency Graph
 
 ```mermaid
 graph LR
     P1["Phase 1<br/>Backend Foundation<br/>✅ DONE"]
-    P2["Phase 2<br/>AI Integration"]
-    P3["Phase 3<br/>Frontend"]
-    P4["Phase 4<br/>Polish & Edge Cases"]
-    P5["Phase 5<br/>GitHub PR Integration"]
-    P6["Phase 6<br/>Testing & Deployment"]
+    P2["Phase 2<br/>AI Integration<br/>✅ DONE"]
+    P3["Phase 3<br/>Frontend<br/>🔲 NOT STARTED"]
+    P4["Phase 4<br/>Polish & Edge Cases<br/>🔲"]
+    P5["Phase 5<br/>GitHub PR Integration<br/>🔲"]
+    P6["Phase 6<br/>Testing & Deployment<br/>⚡ PARTIAL"]
 
     P1 --> P2
     P1 --> P3
@@ -65,33 +65,58 @@ All tasks complete. Current state:
 
 ---
 
-## 3. Phase 2 — AI Integration
+## 3. Phase 2 — AI Integration ✅ DONE
 
 **Goal:** Replace the mock reviewer with real AI-powered code analysis.
 
+All Phase 2 tasks are complete. The backend now features:
+- Full async Gemini GenAI provider (`gemini-2.5-flash` default)
+- Async OpenAI / OpenRouter provider (with configurable `OPENAI_BASE_URL`)
+- Deterministic mock provider for offline testing
+- Provider factory pattern with `REVIEW_PROVIDER` env var switching
+- Automatic primary → fallback cascade with `FALLBACK_PROVIDER` config
+- `config.py` with `pydantic-settings` for all env var management
+- `prompt_builder.py` with XML boundary `<user_code>` injection guardrails
+- 4 specialized review modes: `comprehensive`, `security`, `performance`, `style`
+- 12 supported programming languages
+- In-memory SHA-256 hash-based TTL review cache with LRU eviction
+- Sliding-window client IP rate limiter (HTTP 429 with `Retry-After`)
+- Structured JSON logger with `X-Request-ID` contextvars tracing
+- Domain exception hierarchy (408, 429, 502, 503)
+- 32/32 automated tests passing across 7 test suites
+
 ### Tasks
 
-| # | Task | Priority | Est. |
+| # | Task | Priority | Status |
 |---|---|---|---|
-| 2.1 | Create `config.py` with `pydantic-settings` for env var management | P0 | 30 min |
-| 2.2 | Create `.env` file with `REVIEW_PROVIDER` and `GEMINI_API_KEY` | P0 | 10 min |
-| 2.3 | Install `google-generativeai` package | P0 | 5 min |
-| 2.4 | Create `services/providers/base.py` — abstract `BaseReviewProvider` | P0 | 30 min |
-| 2.5 | Move mock logic to `services/providers/mock.py` | P0 | 20 min |
-| 2.6 | Create `utils/prompt_builder.py` — build review prompts from code + language | P0 | 1 hr |
-| 2.7 | Create `services/providers/gemini.py` — Gemini API integration | P0 | 2 hrs |
-| 2.8 | Update `services/reviewer.py` to use provider factory pattern | P0 | 1 hr |
-| 2.9 | Add 30-second timeout handling for AI calls | P0 | 30 min |
-| 2.10 | Test with real Python, JS, and TS code samples | P0 | 1 hr |
-| 2.11 | (Optional) Create `services/providers/openai_provider.py` as fallback | P2 | 1 hr |
+| 2.1 | Create `config.py` with `pydantic-settings` for env var management | P0 | ✅ Done |
+| 2.2 | Create `.env` file with `REVIEW_PROVIDER` and `GEMINI_API_KEY` | P0 | ✅ Done |
+| 2.3 | Install `google-generativeai` package | P0 | ✅ Done |
+| 2.4 | Create `services/providers/base.py` — abstract `BaseReviewProvider` | P0 | ✅ Done |
+| 2.5 | Move mock logic to `services/providers/mock.py` | P0 | ✅ Done |
+| 2.6 | Create `utils/prompt_builder.py` — build review prompts from code + language | P0 | ✅ Done |
+| 2.7 | Create `services/providers/gemini.py` — Gemini API integration | P0 | ✅ Done |
+| 2.8 | Update `services/reviewer.py` to use provider factory pattern | P0 | ✅ Done |
+| 2.9 | Add 30-second timeout handling for AI calls | P0 | ✅ Done |
+| 2.10 | Test with real Python, JS, and TS code samples | P0 | ✅ Done |
+| 2.11 | Create `services/providers/openai_provider.py` as fallback | P2 | ✅ Done |
 
 ### Definition of Done
-- [ ] Submitting real code to `/review` returns AI-generated issues
-- [ ] Each issue has accurate line numbers, severity, message, and suggestion
-- [ ] Provider is swappable via `REVIEW_PROVIDER` env var
-- [ ] Setting `REVIEW_PROVIDER=mock` still works (for testing)
-- [ ] 30-second timeout returns proper error response
-- [ ] API keys are in `.env`, not in code
+- [x] Submitting real code to `/review` returns AI-generated issues (Gemini integration complete)
+- [x] Each issue has accurate line numbers, severity, message, and suggestion
+- [x] Provider is swappable via `REVIEW_PROVIDER` env var (gemini, openai, mock supported)
+- [x] Setting `REVIEW_PROVIDER=mock` still works (for testing)
+- [x] 30-second timeout returns proper error response
+- [x] API keys are in `.env`, not in code
+- [x] Fallback cascade works (primary → fallback → mock)
+- [x] In-memory SHA-256 hash-based TTL review cache implemented
+- [x] Sliding-window client IP rate limiter implemented
+- [x] Structured JSON logger & X-Request-ID tracing middleware implemented
+- [x] Prompt injection XML guardrails implemented
+- [x] OpenAI / OpenRouter provider integration implemented
+- [x] Automatic primary → fallback cascade implemented
+- [x] Detailed health diagnostics endpoint implemented
+- [x] 32/32 tests automated test suite passing
 
 ### Prompt Engineering Notes
 The review prompt should instruct the AI to return a **specific JSON schema**:
@@ -161,29 +186,32 @@ Code:
 
 **Goal:** Handle all edge cases, improve UX, and harden the system.
 
+> [!NOTE]
+> Several backend-side tasks were completed ahead of schedule during Phase 2 improvements. Frontend-related tasks remain pending (Phase 3 dependency).
+
 ### Tasks
 
-| # | Task | Priority | Est. |
+| # | Task | Priority | Status |
 |---|---|---|---|
-| 4.1 | Add input validation on frontend (empty code, max length) | P0 | 30 min |
-| 4.2 | Add input validation on backend (empty after trim, max 10K chars) | P0 | 30 min |
-| 4.3 | Add `ReviewMetadata` to response (language, lines_reviewed, review_time_ms) | P1 | 30 min |
-| 4.4 | Add `GET /health` endpoint with AI provider status | P1 | 20 min |
-| 4.5 | Improve prompt injection guardrails in system prompt | P0 | 1 hr |
-| 4.6 | Handle AI returning malformed JSON (fallback parsing) | P0 | 1 hr |
-| 4.7 | Add keyboard accessibility (Tab navigation, focus rings) | P1 | 1 hr |
-| 4.8 | Add `aria-live` and `role="alert"` for screen readers | P1 | 30 min |
-| 4.9 | Add `prefers-reduced-motion` support | P2 | 20 min |
-| 4.10 | Remove `print()` statements, add proper logging | P1 | 30 min |
-| 4.11 | Remove `allow_origins=["*"]`, restrict to frontend domain | P0 | 10 min |
+| 4.1 | Add input validation on frontend (empty code, max length) | P0 | 🔲 Blocked (needs Phase 3) |
+| 4.2 | Add input validation on backend (empty after trim, max 15K chars) | P0 | ✅ Done (Pydantic + field_validator) |
+| 4.3 | Add `ReviewMetadata` to response (language, lines_reviewed, review_time_ms) | P1 | ✅ Done (rich metadata with provider, model, cached, request_id) |
+| 4.4 | Add `GET /health` endpoint with AI provider status | P1 | ✅ Done (provider, model, cache_size, supported_languages, supported_modes) |
+| 4.5 | Improve prompt injection guardrails in system prompt | P0 | ✅ Done (XML `<user_code>` boundary isolation) |
+| 4.6 | Handle AI returning malformed JSON (fallback parsing) | P0 | ✅ Done (Pydantic model_validate_json with ProviderError) |
+| 4.7 | Add keyboard accessibility (Tab navigation, focus rings) | P1 | 🔲 Blocked (needs Phase 3) |
+| 4.8 | Add `aria-live` and `role="alert"` for screen readers | P1 | 🔲 Blocked (needs Phase 3) |
+| 4.9 | Add `prefers-reduced-motion` support | P2 | 🔲 Blocked (needs Phase 3) |
+| 4.10 | Remove `print()` statements, add proper logging | P1 | ✅ Done (structured JSON logger with contextvars) |
+| 4.11 | Remove `allow_origins=["*"]`, restrict to frontend domain | P0 | 🔲 Pending (awaiting frontend deployment URL) |
 
 ### Definition of Done
-- [ ] Submitting empty code shows validation error (no API call)
-- [ ] Submitting 15K characters shows max length error
-- [ ] AI malformed response returns graceful error, not 500
-- [ ] All interactive elements accessible via keyboard
-- [ ] No `print()` in production code
-- [ ] CORS locked to frontend origin
+- [x] Submitting empty code shows validation error (no API call) — backend returns 422
+- [x] Submitting 15K characters shows max length error — backend returns 422
+- [x] AI malformed response returns graceful error, not 500 — ProviderError raised
+- [ ] All interactive elements accessible via keyboard (needs frontend)
+- [x] No `print()` in production code — structured logger used throughout
+- [ ] CORS locked to frontend origin (pending frontend deployment)
 
 ---
 
@@ -212,30 +240,45 @@ Code:
 
 ---
 
-## 7. Phase 6 — Testing & Deployment
+## 7. Phase 6 — Testing & Deployment ⚡ PARTIAL
 
 **Goal:** Add tests, deploy to production, and monitor.
 
+> [!NOTE]
+> Testing is complete (32/32 tests across 7 suites). Deployment tasks remain pending.
+
 ### Tasks
 
-| # | Task | Priority | Est. |
+| # | Task | Priority | Status |
 |---|---|---|---|
-| 6.1 | Install `pytest` + `httpx` for API testing | P0 | 10 min |
-| 6.2 | Write tests for `/review` endpoint (valid input, empty, too long, bad language) | P0 | 2 hrs |
-| 6.3 | Write tests for AI provider switching (mock ↔ real) | P1 | 1 hr |
-| 6.4 | Write tests for prompt builder output format | P1 | 30 min |
-| 6.5 | Add `Procfile` or `railway.json` for deployment | P0 | 20 min |
-| 6.6 | Deploy backend to Railway/Render | P0 | 1 hr |
-| 6.7 | Configure production environment variables | P0 | 20 min |
-| 6.8 | Test deployed API from browser | P0 | 30 min |
-| 6.9 | Set up UptimeRobot for monitoring | P2 | 20 min |
-| 6.10 | Write `README.md` with setup instructions | P1 | 1 hr |
+| 6.1 | Install `pytest` + `httpx` for API testing | P0 | ✅ Done |
+| 6.2 | Write tests for `/review` endpoint (valid input, empty, too long, bad language) | P0 | ✅ Done (test_review.py — 10 tests) |
+| 6.3 | Write tests for AI provider switching (mock ↔ real) | P1 | ✅ Done (test_review.py + test_integration.py) |
+| 6.4 | Write tests for prompt builder output format | P1 | ✅ Done (test_prompt_builder.py) |
+| 6.5 | Add `Procfile` or `railway.json` for deployment | P0 | 🔲 Pending |
+| 6.6 | Deploy backend to Railway/Render | P0 | 🔲 Pending |
+| 6.7 | Configure production environment variables | P0 | 🔲 Pending |
+| 6.8 | Test deployed API from browser | P0 | 🔲 Pending |
+| 6.9 | Set up UptimeRobot for monitoring | P2 | 🔲 Pending |
+| 6.10 | Write `README.md` with setup instructions | P1 | ✅ Done (comprehensive README with API reference) |
+
+### Test Suites (32 tests passing)
+
+| Suite | File | Tests | Coverage |
+|---|---|---|---|
+| Health | `test_health.py` | Health check, X-Request-ID propagation | ✅ |
+| Review | `test_review.py` | 10 tests: validation, modes, languages, providers, factory | ✅ |
+| Cache | `test_cache.py` | Set/get, TTL expiration, LRU eviction, cache miss, clear | ✅ |
+| Prompt Builder | `test_prompt_builder.py` | Template output, XML injection guardrails | ✅ |
+| Exceptions | `test_exceptions.py` | Domain error → HTTP status code mapping (408, 429, 502, 503) | ✅ |
+| Rate Limiter | `test_rate_limiter.py` | Sliding window enforcement, IP isolation | ✅ |
+| Integration | `test_integration.py` | Fallback cascade, middleware throttling | ✅ |
 
 ### Definition of Done
-- [ ] All API tests pass
+- [x] All API tests pass (32/32)
 - [ ] App deployed and accessible via public URL
 - [ ] Environment variables configured in hosting platform
-- [ ] README has local setup + deployment instructions
+- [x] README has local setup + deployment instructions
 - [ ] Monitoring alert set up
 
 ---
@@ -245,12 +288,14 @@ Code:
 > [!IMPORTANT]
 > MVP = Phase 1 + Phase 2 + Phase 3 + minimal Phase 4. The product is shippable after these are done.
 
-- [ ] **Backend:** POST `/review` returns real AI-generated review
+- [x] **Backend:** POST `/review` returns real AI-generated review
 - [ ] **Frontend:** User can paste code, select language, submit, see results
-- [ ] **Validation:** Empty code and oversized code are rejected
-- [ ] **Error handling:** Timeouts and AI failures show user-friendly errors
-- [ ] **Security:** API keys in `.env`, CORS restricted, no code execution
-- [ ] **Accessibility:** Keyboard navigable, screen reader labels
+- [x] **Validation:** Empty code and oversized code are rejected
+- [x] **Error handling:** Timeouts and AI failures show user-friendly errors
+- [x] **Security:** API keys in `.env`, prompt injection guardrails, no code execution
+- [ ] **Accessibility:** Keyboard navigable, screen reader labels (needs frontend)
+
+> ✅ Backend MVP is complete. The remaining blocker is **Phase 3 (Frontend)**.
 
 ---
 
@@ -269,22 +314,27 @@ Code:
 ## 10. Priorities at a Glance
 
 ```
-NOW (this week):
-  → Phase 2: AI Integration (swap mock for Gemini)
-  → Phase 3: Frontend (can start in parallel)
+COMPLETED:
+  ✅ Phase 1: Backend Foundation
+  ✅ Phase 2: AI Integration (Gemini, OpenAI, Mock, Fallback, Modes, Caching, Rate Limiting)
+  ✅ Phase 6 (Testing): 32/32 tests across 7 test suites
 
-NEXT (next week):
-  → Phase 4: Polish & edge cases
-  → Phase 6: Testing & deployment
+NOW (Current Priority):
+  → Phase 3: Frontend Web UI (Editor, Results Panel, Language/Mode Selector)
+
+NEXT:
+  → Phase 4: Frontend-side polish, accessibility (ARIA, keyboard navigation)
+  → Phase 6 (Deployment): Deploy backend + frontend to Railway/Render/Vercel
 
 LATER:
-  → Phase 5: GitHub PR integration
+  → Phase 5: GitHub PR integration (webhooks, diff parsing)
 ```
 
 > [!TIP]
-> **Recommended order to start right now:**
-> 1. `config.py` + `.env` setup (15 min)
-> 2. AI provider base class (30 min)
-> 3. Gemini integration (2 hrs)
-> 4. Test with real code (30 min)
-> 5. Start frontend while AI results are fresh in your mind
+> **Recommended next steps:**
+> 1. Create `frontend/` directory with `index.html`, `style.css`, `app.js`
+> 2. Build code editor panel with syntax highlighting and line numbers
+> 3. Build language and review mode selectors
+> 4. Build results panel with severity badges and expandable issue cards
+> 5. Connect frontend to `POST /review` and `GET /health` endpoints
+> 6. Mount static files in FastAPI for single-server serving
