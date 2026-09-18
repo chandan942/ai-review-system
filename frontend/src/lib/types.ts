@@ -74,3 +74,30 @@ export interface CodeRequest {
   language: SupportedLanguage
   mode: ReviewMode
 }
+
+export class ApiError extends Error {
+  public status?: number
+  public data?: unknown
+  public requestId?: string
+  public isTimeout: boolean
+  public isNetworkError: boolean
+
+  constructor(
+    message: string,
+    options?: {
+      status?: number
+      data?: unknown
+      requestId?: string
+      isTimeout?: boolean
+      isNetworkError?: boolean
+    }
+  ) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = options?.status
+    this.data = options?.data
+    this.requestId = options?.requestId
+    this.isTimeout = options?.isTimeout ?? false
+    this.isNetworkError = options?.isNetworkError ?? false
+  }
+}
