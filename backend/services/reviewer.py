@@ -1,24 +1,105 @@
+from typing import Optional
 from backend.config import get_settings
+from backend.exceptions import ProviderError, ProviderUnavailableError, ReviewError
 from backend.models import ReviewResponse
+from backend.services.cache import get_cache
 from backend.services.providers.base import BaseReviewProvider
 from backend.services.providers.gemini import GeminiReviewProvider
 from backend.services.providers.mock import MockReviewProvider
+from backend.services.providers.openai_provider import OpenAIReviewProvider
+from backend.utils.logger import get_current_request_id, get_logger
+
+logger = get_logger("reviewer")
 
 
-def get_provider(provider_name: str | None = None) -> BaseReviewProvider:
+def get_provider(provider_name: Optional[str] = None) -> BaseReviewProvider:
     """Factory function to instantiate the selected review provider."""
     selected = provider_name or get_settings().review_provider
     selected_lower = selected.lower().strip()
 
     if selected_lower == "gemini":
         return GeminiReviewProvider()
+    elif selected_lower == "openai":
+        return OpenAIReviewProvider()
     elif selected_lower == "mock":
         return MockReviewProvider()
     else:
         raise ValueError(f"Unsupported review provider: '{selected}'")
 
 
-def review_code(code: str, language: str) -> ReviewResponse:
-    """Delegate review execution to configured provider."""
-    provider = get_provider()
-    return provider.review_code(code, language)
+async def review_code(code: str, language: str, mode: str = "comprehensive") -> ReviewResponse:
+    """Orchestrates code review with cache lookup and multi-provider fallback."""
+    settings = get_settings()
+    cache = get_cache()
+    primary_provider = get_provider(settings.review_provider)
+
+    # 1. Check cache
+    cached_result = cache.get(
+        code=code,
+        language=language,
+        mode=mode,
+        model=primary_provider.model_name,
+    )
+    if cached_result:
+        req_id = get_current_request_id()
+        cached_result.metadata.request_id = req_id
+        logger.info(f"Cache hit for {language} review in mode '{mode}'.")
+        return cached_result
+
+    # 2. Attempt primary provider
+    logger.info(
+        f"Attempting review with primary provider '{primary_provider.provider_name}' "
+        f"({primary_provider.model_name}) for {language} [{mode}]."
+    )
+
+    review_result: Optional[ReviewResponse] = None
+    primary_error: Optional[Exception] = None
+
+    try:
+        review_result = await primary_provider.review_code(code, language, mode)
+    except Exception as e:
+        primary_error = e
+        logger.warning(
+            f"Primary provider '{primary_provider.provider_name}' failed: {e}. "
+            f"Evaluating fallback..."
+        )
+
+    # 3. Fallback cascade if primary provider failed
+    if review_result is None:
+        fallback_name = settings.fallback_provider
+        if fallback_name and fallback_name.lower() != "none" and fallback_name.lower() != primary_provider.provider_name:
+            try:
+                fallback_provider = get_provider(fallback_name)
+                logger.info(f"Triggering fallback provider '{fallback_provider.provider_name}'.")
+                review_result = await fallback_provider.review_code(code, language, mode)
+            except Exception as fb_err:
+                logger.error(f"Fallback provider '{fallback_name}' also failed: {fb_err}.")
+                if isinstance(primary_error, ReviewError):
+                    raise primary_error
+                raise ProviderUnavailableError(
+                    f"Both primary ('{primary_provider.provider_name}') and fallback ('{fallback_name}') failed."
+                ) from fb_err
+        else:
+            if isinstance(primary_error, ReviewError):
+                raise primary_error
+            raise ProviderUnavailableError(
+                f"Primary provider '{primary_provider.provider_name}' failed and no fallback configured."
+            ) from primary_error
+
+    # 4. Attach request_id and update cache
+    req_id = get_current_request_id()
+    review_result.metadata.request_id = req_id
+
+    cache.set(
+        code=code,
+        language=language,
+        mode=mode,
+        model=primary_provider.model_name,
+        response=review_result,
+    )
+
+    logger.info(
+        f"Review successfully completed by '{review_result.metadata.provider}' "
+        f"in {review_result.metadata.review_time_ms}ms with {len(review_result.issues)} issue(s)."
+    )
+    return review_result
