@@ -4,6 +4,7 @@ import type {
   SupportedLanguage,
   ReviewMode,
 } from '../lib/types'
+import type { IssueSeverity } from '../lib/types'
 
 export interface AppState {
   editorContent: string
@@ -13,6 +14,7 @@ export interface AppState {
   isLoading: boolean
   error: string | null
   healthStatus: any | null
+  filterSeverity: IssueSeverity | 'all'
 }
 
 export type AppAction =
@@ -23,6 +25,7 @@ export type AppAction =
   | { type: 'SET_REVIEW_RESULT'; payload: ReviewResponse | null }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_HEALTH_STATUS'; payload: any | null }
+  | { type: 'SET_FILTER_SEVERITY'; payload: IssueSeverity | 'all' }
   | { type: 'RESET_STATE' }
 
 // Initial state
@@ -34,6 +37,7 @@ export const initialState: AppState = {
   isLoading: false,
   error: null,
   healthStatus: null,
+  filterSeverity: 'all',
 }
 
 // Reducer
@@ -56,6 +60,8 @@ export const appReducer = (
       return { ...state, error: action.payload }
     case 'SET_HEALTH_STATUS':
       return { ...state, healthStatus: action.payload }
+    case 'SET_FILTER_SEVERITY':
+      return { ...state, filterSeverity: action.payload }
     case 'RESET_STATE':
       return initialState
     default:
