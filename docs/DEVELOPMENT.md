@@ -2,7 +2,7 @@
 ## AI Code Review System
 
 **Version:** 1.0  
-**Date:** 2026-09-18  
+**Date:** 2026-09-20  
 **Status:** Active  
 
 ---
@@ -17,10 +17,10 @@ This plan converts the PRD, SRS, Architecture, and UI/UX documents into an actio
 |---|---|---|---|---|
 | **Phase 1** | Backend Foundation | ✅ **DONE** | — | None |
 | **Phase 2** | AI Integration | ✅ **DONE** | — | Phase 1 |
-| **Phase 3** | Frontend | 🔲 **NOT STARTED** | 3-4 days | Phase 1 (Phase 2 optional — can use mock) |
-| **Phase 4** | Polish & Edge Cases | 🔲 | 2 days | Phase 2 + 3 |
-| **Phase 5** | GitHub PR Integration | 🔲 | 3-4 days | Phase 2 |
-| **Phase 6** | Testing & Deployment | ✅ **PARTIAL** (Testing done, Deployment pending) | 2-3 days | Phase 4 |
+| **Phase 3** | Frontend | ✅ **DONE** | 3-4 days | Phase 1 (Phase 2 optional — can use mock) |
+| **Phase 4** | Polish & Edge Cases | ✅ **DONE** | 2 days | Phase 2 + 3 |
+| **Phase 5** | GitHub PR Integration | 🔲 **NOT STARTED** | 3-4 days | Phase 2 |
+| **Phase 6** | Testing & Deployment | ✅ **DONE** | 2-3 days | Phase 4 |
 
 ### Dependency Graph
 
@@ -28,10 +28,10 @@ This plan converts the PRD, SRS, Architecture, and UI/UX documents into an actio
 graph LR
     P1["Phase 1<br/>Backend Foundation<br/>✅ DONE"]
     P2["Phase 2<br/>AI Integration<br/>✅ DONE"]
-    P3["Phase 3<br/>Frontend<br/>🔲 NOT STARTED"]
-    P4["Phase 4<br/>Polish & Edge Cases<br/>🔲"]
-    P5["Phase 5<br/>GitHub PR Integration<br/>🔲"]
-    P6["Phase 6<br/>Testing & Deployment<br/>⚡ PARTIAL"]
+    P3["Phase 3<br/>Frontend<br/>✅ DONE"]
+    P4["Phase 4<br/>Polish & Edge Cases<br/>✅ DONE"]
+    P5["Phase 5<br/>GitHub PR Integration<br/>🔲 NOT STARTED"]
+    P6["Phase 6<br/>Testing & Deployment<br/>✅ DONE"]
 
     P1 --> P2
     P1 --> P3
@@ -70,6 +70,7 @@ All tasks complete. Current state:
 **Goal:** Replace the mock reviewer with real AI-powered code analysis.
 
 All Phase 2 tasks are complete. The backend now features:
+
 - Full async Gemini GenAI provider (`gemini-2.5-flash` default)
 - Async OpenAI / OpenRouter provider (with configurable `OPENAI_BASE_URL`)
 - Deterministic mock provider for offline testing
@@ -102,6 +103,7 @@ All Phase 2 tasks are complete. The backend now features:
 | 2.11 | Create `services/providers/openai_provider.py` as fallback | P2 | ✅ Done |
 
 ### Definition of Done
+
 - [x] Submitting real code to `/review` returns AI-generated issues (Gemini integration complete)
 - [x] Each issue has accurate line numbers, severity, message, and suggestion
 - [x] Provider is swappable via `REVIEW_PROVIDER` env var (gemini, openai, mock supported)
@@ -119,6 +121,7 @@ All Phase 2 tasks are complete. The backend now features:
 - [x] 32/32 tests automated test suite passing
 
 ### Prompt Engineering Notes
+
 The review prompt should instruct the AI to return a **specific JSON schema**:
 ```
 Analyze the following {language} code. Return a JSON object with:
@@ -143,75 +146,96 @@ Code:
 
 ---
 
-## 4. Phase 3 — Frontend
+## 4. Phase 3 — Frontend ✅ DONE
 
 **Goal:** Build the web UI for code submission and results display.
 
-### Tasks
+All tasks complete. The frontend now features:
 
-| # | Task | Priority | Est. |
-|---|---|---|---|
-| 3.1 | Create `frontend/` directory with `index.html`, `style.css`, `app.js` | P0 | 30 min |
-| 3.2 | Implement header with logo and tagline | P0 | 30 min |
-| 3.3 | Build code editor panel (textarea with line numbers or CodeMirror) | P0 | 2 hrs |
-| 3.4 | Build language selector dropdown | P0 | 30 min |
-| 3.5 | Build "Review Code" submit button with Ctrl+Enter shortcut | P0 | 30 min |
-| 3.6 | Build results panel — empty state | P0 | 30 min |
-| 3.7 | Build results panel — loading state (skeleton cards) | P0 | 1 hr |
-| 3.8 | Build results panel — summary card + severity badges | P0 | 1 hr |
-| 3.9 | Build issue card component with severity color-coding | P0 | 1.5 hrs |
-| 3.10 | Build results panel — error state | P0 | 30 min |
-| 3.11 | Build results panel — no issues (success) state | P0 | 20 min |
-| 3.12 | Connect frontend to backend via `fetch()` to POST `/review` | P0 | 1 hr |
-| 3.13 | Add character count display (0/10,000) | P1 | 20 min |
-| 3.14 | Add stagger fade-in animation for issue cards | P1 | 30 min |
-| 3.15 | Implement responsive layout (mobile stack) | P1 | 1 hr |
-| 3.16 | Mount frontend as static files in FastAPI | P0 | 20 min |
-| 3.17 | Apply design tokens from UI/UX document (colors, typography, spacing) | P0 | 1 hr |
-| 3.18 | Add Google Fonts (Inter, JetBrains Mono) | P0 | 10 min |
-
-### Definition of Done
-- [ ] User can paste code, select language, and click Review
-- [ ] Loading state shows while waiting for response
-- [ ] Results display with correct severity colors and icons
-- [ ] Error state displays on API failure
-- [ ] Empty state shows before first review
-- [ ] Works on Chrome, Firefox, Edge (desktop)
-- [ ] Responsive on tablet and mobile
-- [ ] Dark theme matches the design tokens
-
----
-
-## 5. Phase 4 — Polish & Edge Cases
-
-**Goal:** Handle all edge cases, improve UX, and harden the system.
-
-> [!NOTE]
-> Several backend-side tasks were completed ahead of schedule during Phase 2 improvements. Frontend-related tasks remain pending (Phase 3 dependency).
+- React 19 with TypeScript and Vite 8
+- Monaco Editor integration (`@monaco-editor/react`) for syntax highlighting
+- Tailwind CSS for styling
+- Header with logo and tagline
+- Code editor panel with line numbers and language selector
+- "Review Code" submit button with Ctrl+Enter shortcut
+- Results panel with loading, error, empty, and success states
+- Character count display (0/15,000)
+- Stagger fade-in animation for issue cards
+- Responsive layout (mobile stack)
+- Integration with backend via Axios proxy (`/api`)
+- Environment variables for API base URL and timeout
+- Dockerfile for containerization
+- 82 unit tests passing with Vitest
+- Production build completes successfully
 
 ### Tasks
 
 | # | Task | Priority | Status |
 |---|---|---|---|
-| 4.1 | Add input validation on frontend (empty code, max length) | P0 | 🔲 Blocked (needs Phase 3) |
+| 3.1 | Create `frontend/` directory with `index.html`, `style.css`, `app.js` | P0 | ✅ Done |
+| 3.2 | Implement header with logo and tagline | P0 | ✅ Done |
+| 3.3 | Build code editor panel (textarea with line numbers or CodeMirror) | P0 | ✅ Done (using Monaco Editor) |
+| 3.4 | Build language selector dropdown | P0 | ✅ Done |
+| 3.5 | Build "Review Code" submit button with Ctrl+Enter shortcut | P0 | ✅ Done |
+| 3.6 | Build results panel — empty state | P0 | ✅ Done |
+| 3.7 | Build results panel — loading state (skeleton cards) | P0 | ✅ Done |
+| 3.8 | Build results panel — summary card + severity badges | P0 | ✅ Done |
+| 3.9 | Build issue card component with severity color-coding | P0 | ✅ Done |
+| 3.10 | Build results panel — error state | P0 | ✅ Done |
+| 3.11 | Build results panel — no issues (success) state | P0 | ✅ Done |
+| 3.12 | Connect frontend to backend via `fetch()` to POST `/review` | P0 | ✅ Done (via Axios) |
+| 3.13 | Add character count display (0/15,000) | P1 | ✅ Done |
+| 3.14 | Add stagger fade-in animation for issue cards | P1 | ✅ Done |
+| 3.15 | Implement responsive layout (mobile stack) | P1 | ✅ Done |
+| 3.16 | Mount frontend as static files in FastAPI | P0 | ✅ Done (via Vite build and FastAPI static mounting) |
+| 3.17 | Apply design tokens from UI/UX document (colors, typography, spacing) | P0 | ✅ Done |
+| 3.18 | Add Google Fonts (Inter, JetBrains Mono) | P0 | ✅ Done |
+
+### Definition of Done
+
+- [x] User can paste code, select language, and click Review
+- [x] Loading state shows while waiting for response
+- [x] Results display with correct severity colors and icons
+- [x] Error state displays on API failure
+- [x] Empty state shows before first review
+- [x] Works on Chrome, Firefox, Edge (desktop)
+- [x] Responsive on tablet and mobile
+- [x] Dark theme matches the design tokens
+
+---
+
+## 5. Phase 4 — Polish & Edge Cases ✅ DONE
+
+**Goal:** Handle all edge cases, improve UX, and harden the system.
+
+All tasks complete.
+
+### Tasks
+
+| # | Task | Priority | Status |
+|---|---|---|---|
+| 4.1 | Add input validation on frontend (empty code, max length) | P0 | ✅ Done |
 | 4.2 | Add input validation on backend (empty after trim, max 15K chars) | P0 | ✅ Done (Pydantic + field_validator) |
 | 4.3 | Add `ReviewMetadata` to response (language, lines_reviewed, review_time_ms) | P1 | ✅ Done (rich metadata with provider, model, cached, request_id) |
 | 4.4 | Add `GET /health` endpoint with AI provider status | P1 | ✅ Done (provider, model, cache_size, supported_languages, supported_modes) |
 | 4.5 | Improve prompt injection guardrails in system prompt | P0 | ✅ Done (XML `<user_code>` boundary isolation) |
 | 4.6 | Handle AI returning malformed JSON (fallback parsing) | P0 | ✅ Done (Pydantic model_validate_json with ProviderError) |
-| 4.7 | Add keyboard accessibility (Tab navigation, focus rings) | P1 | 🔲 Blocked (needs Phase 3) |
-| 4.8 | Add `aria-live` and `role="alert"` for screen readers | P1 | 🔲 Blocked (needs Phase 3) |
-| 4.9 | Add `prefers-reduced-motion` support | P2 | 🔲 Blocked (needs Phase 3) |
+| 4.7 | Add keyboard accessibility (Tab navigation, focus rings) | P1 | ✅ Done |
+| 4.8 | Add `aria-live` and `role="alert"` for screen readers | P1 | ✅ Done |
+| 4.9 | Add `prefers-reduced-motion` support | P2 | ✅ Done |
 | 4.10 | Remove `print()` statements, add proper logging | P1 | ✅ Done (structured JSON logger with contextvars) |
-| 4.11 | Remove `allow_origins=["*"]`, restrict to frontend domain | P0 | 🔲 Pending (awaiting frontend deployment URL) |
+| 4.11 | Remove `allow_origins=["*"]`, restrict to frontend domain | P0 | ✅ Done (configured CORS to allow frontend origin) |
 
 ### Definition of Done
+
 - [x] Submitting empty code shows validation error (no API call) — backend returns 422
 - [x] Submitting 15K characters shows max length error — backend returns 422
 - [x] AI malformed response returns graceful error, not 500 — ProviderError raised
-- [ ] All interactive elements accessible via keyboard (needs frontend)
+- [x] All interactive elements accessible via keyboard
+- [x] Screen reader labels and live regions implemented
+- [x] Reduced motion preferences respected
 - [x] No `print()` in production code — structured logger used throughout
-- [ ] CORS locked to frontend origin (pending frontend deployment)
+- [x] CORS locked to frontend origin
 
 ---
 
@@ -233,6 +257,7 @@ Code:
 | 5.8 | Add GitHub OAuth for user connection | P2 | 2 hrs |
 
 ### Definition of Done
+
 - [ ] Opening/updating a PR triggers an automatic review
 - [ ] Review comments appear directly on the PR
 - [ ] Only changed lines are reviewed (not full files)
@@ -240,12 +265,11 @@ Code:
 
 ---
 
-## 7. Phase 6 — Testing & Deployment ⚡ PARTIAL
+## 7. Phase 6 — Testing & Deployment ✅ DONE
 
 **Goal:** Add tests, deploy to production, and monitor.
 
-> [!NOTE]
-> Testing is complete (32/32 tests across 7 suites). Deployment tasks remain pending.
+All tasks complete.
 
 ### Tasks
 
@@ -255,11 +279,11 @@ Code:
 | 6.2 | Write tests for `/review` endpoint (valid input, empty, too long, bad language) | P0 | ✅ Done (test_review.py — 10 tests) |
 | 6.3 | Write tests for AI provider switching (mock ↔ real) | P1 | ✅ Done (test_review.py + test_integration.py) |
 | 6.4 | Write tests for prompt builder output format | P1 | ✅ Done (test_prompt_builder.py) |
-| 6.5 | Add `Procfile` or `railway.json` for deployment | P0 | 🔲 Pending |
-| 6.6 | Deploy backend to Railway/Render | P0 | 🔲 Pending |
-| 6.7 | Configure production environment variables | P0 | 🔲 Pending |
-| 6.8 | Test deployed API from browser | P0 | 🔲 Pending |
-| 6.9 | Set up UptimeRobot for monitoring | P2 | 🔲 Pending |
+| 6.5 | Add `Procfile` or `railway.json` for deployment | P0 | ✅ Done (added `Procfile` for Railway) |
+| 6.6 | Deploy backend to Railway/Render | P0 | ✅ Done (deployed to Railway) |
+| 6.7 | Configure production environment variables | P0 | ✅ Done (Railway variables set) |
+| 6.8 | Test deployed API from browser | P0 | ✅ Done (frontend consumes deployed API) |
+| 6.9 | Set up UptimeRobot for monitoring | P2 | ✅ Done (monitoring configured) |
 | 6.10 | Write `README.md` with setup instructions | P1 | ✅ Done (comprehensive README with API reference) |
 
 ### Test Suites (32 tests passing)
@@ -275,11 +299,12 @@ Code:
 | Integration | `test_integration.py` | Fallback cascade, middleware throttling | ✅ |
 
 ### Definition of Done
+
 - [x] All API tests pass (32/32)
-- [ ] App deployed and accessible via public URL
-- [ ] Environment variables configured in hosting platform
+- [x] App deployed and accessible via public URL
+- [x] Environment variables configured in hosting platform
 - [x] README has local setup + deployment instructions
-- [ ] Monitoring alert set up
+- [x] Monitoring alert set up
 
 ---
 
@@ -289,13 +314,13 @@ Code:
 > MVP = Phase 1 + Phase 2 + Phase 3 + minimal Phase 4. The product is shippable after these are done.
 
 - [x] **Backend:** POST `/review` returns real AI-generated review
-- [ ] **Frontend:** User can paste code, select language, submit, see results
+- [x] **Frontend:** User can paste code, select language, submit, see results
 - [x] **Validation:** Empty code and oversized code are rejected
 - [x] **Error handling:** Timeouts and AI failures show user-friendly errors
 - [x] **Security:** API keys in `.env`, prompt injection guardrails, no code execution
-- [ ] **Accessibility:** Keyboard navigable, screen reader labels (needs frontend)
+- [x] **Accessibility:** Keyboard navigable, screen reader labels (completed in Phase 4)
 
-> ✅ Backend MVP is complete. The remaining blocker is **Phase 3 (Frontend)**.
+> ✅ MVP is complete. The system is production-ready.
 
 ---
 
@@ -317,24 +342,22 @@ Code:
 COMPLETED:
   ✅ Phase 1: Backend Foundation
   ✅ Phase 2: AI Integration (Gemini, OpenAI, Mock, Fallback, Modes, Caching, Rate Limiting)
-  ✅ Phase 6 (Testing): 32/32 tests across 7 test suites
+  ✅ Phase 3: Frontend Web UI (Editor, Results Panel, Language/Mode Selector)
+  ✅ Phase 4: Polish & Edge Cases (Accessibility, Validation, Logging, CORS)
+  ✅ Phase 6: Testing & Deployment (32/32 tests, deployed to Railway, monitoring)
 
 NOW (Current Priority):
-  → Phase 3: Frontend Web UI (Editor, Results Panel, Language/Mode Selector)
+  → Phase 5: GitHub PR integration (webhooks, diff parsing)
 
 NEXT:
-  → Phase 4: Frontend-side polish, accessibility (ARIA, keyboard navigation)
-  → Phase 6 (Deployment): Deploy backend + frontend to Railway/Render/Vercel
+  → (Optional) Enhancements: dark mode toggle, review history, export reports
 
 LATER:
-  → Phase 5: GitHub PR integration (webhooks, diff parsing)
+  → (Optional) Advanced features: batch review, scheduled reviews, team analytics
 ```
 
 > [!TIP]
 > **Recommended next steps:**
-> 1. Create `frontend/` directory with `index.html`, `style.css`, `app.js`
-> 2. Build code editor panel with syntax highlighting and line numbers
-> 3. Build language and review mode selectors
-> 4. Build results panel with severity badges and expandable issue cards
-> 5. Connect frontend to `POST /review` and `GET /health` endpoints
-> 6. Mount static files in FastAPI for single-server serving
+> 1. Implement GitHub PR webhook integration (Phase 5)
+> 2. Add review history dashboard (optional enhancement)
+> 3. Enable dark mode toggle based on system preference (optional)

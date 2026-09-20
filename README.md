@@ -2,24 +2,24 @@
 
 An AI-powered, production-grade code review system that analyzes source code and provides structured, actionable feedback to help developers identify bugs, improve code quality, enforce security practices, and optimize performance.
 
-> 🚀 **Project Status:** Production-Ready (v1.0.0) | Multi-Provider, Async-Native, Cached & Resilient | Frontend Complete
+> 🚀 **Project Status:** Production-Ready (v1.0.0) | Multi-Provider, Async-Native, Cached & Resilient | Full-Stack (FastAPI + React 19)
 
 ---
 
 ## 📌 Overview
 
-The **AI Review System** is an async-native developer tool designed to automate and augment traditional code reviews.
+The **AI Review System** is an async-native developer tool designed to automate and augment traditional code reviews with deep semantic inspection and zero-latency caching.
 
-A developer submits source code to the API, and the backend processes the request through a resilient, multi-provider review pipeline with automatic fallback, prompt injection containment, and SHA-256 hash deduplication.
+A developer writes or pastes source code in the modern **React 19 / Monaco Editor** web interface or submits it to the REST API. The request is processed through a resilient, multi-provider review pipeline featuring automatic provider failover, prompt injection containment, SHA-256 hash deduplication, and sliding-window rate limiting.
 
-The project is built with:
-
-- **Fully Asynchronous Pipeline:** Non-blocking async event loop across all providers.
-- **Multi-Provider Architecture:** Primary $\rightarrow$ Fallback cascade (Google Gemini $\rightarrow$ OpenAI/OpenRouter $\rightarrow$ Mock).
-- **Specialized Review Modes:** Focused analysis for `comprehensive`, `security`, `performance`, and `style`.
-- **Intelligent Deduplication:** In-memory SHA-256 hash-based TTL caching to reduce latency and API costs.
-- **Built-in Resilience & Security:** Sliding-window client rate limiting, XML boundary prompt injection defense, and domain-specific HTTP status code mapping (408, 429, 502, 503).
-- **Observability:** Structured JSON logging with `X-Request-ID` context propagation and health diagnostics.
+### 🌟 Highlights
+- **Full-Stack Architecture:** Modern React 19 frontend paired with an async Python FastAPI backend.
+- **VS Code-Grade Editor:** Monaco Editor integration (`@monaco-editor/react`) with syntax highlighting for 12 languages.
+- **Multi-Provider Resilience:** Primary $\rightarrow$ Fallback cascade (Google Gemini $\rightarrow$ OpenAI/OpenRouter $\rightarrow$ Deterministic Mock).
+- **Specialized Review Modes:** Target specific engineering goals with `comprehensive`, `security`, `performance`, and `style` analysis.
+- **Intelligent Deduplication:** In-memory SHA-256 hash-based TTL caching to serve repeated reviews instantly (0ms latency, zero API cost).
+- **Hardened Security & Defenses:** Sliding-window client rate limiting (HTTP 429), XML boundary prompt injection defense, and input size constraints.
+- **Observability & Tracing:** Structured JSON logging with `X-Request-ID` context propagation, health diagnostics, and Axios retry interceptors.
 
 ---
 
@@ -29,34 +29,36 @@ The project is built with:
 
 - 🤖 **AI-Powered Code Analysis:** Deep semantic code review with exact line-number mapping.
 - 🎯 **Specialized Focus Modes:**
-  - `comprehensive`: Complete balance of bugs, logic, security, and performance.
-  - `security`: Dedicated audit for injection, auth flaws, and unsafe operations.
+  - `comprehensive`: Balanced assessment of bugs, logic, security, and performance.
+  - `security`: Dedicated audit for injection, authentication flaws, and unsafe operations.
   - `performance`: Algorithmic bottlenecks, memory leaks, and blocking operations.
   - `style`: Idiomatic conventions, readability, and clean architecture.
 - 🌐 **12 Supported Languages:** Python, JavaScript, TypeScript, Java, Go, Rust, C++, C, C#, PHP, Ruby, and Kotlin.
 - ⚡ **Hash-Based Review Cache:** Repeated reviews of identical code and mode are served in 0ms (`cached: true`).
 - 🔄 **Automated Provider Fallback:** Seamless failover to secondary providers (e.g. Gemini $\rightarrow$ Mock) if an upstream API experiences downtime.
-- ⏱️ **Rich Response Metadata:** Real-time review metrics including execution time (`review_time_ms`), lines reviewed, active provider, model name, and cache flag.
+- ⏱️ **Rich Response Metadata:** Real-time metrics including execution time (`review_time_ms`), lines reviewed, active provider, model name, and cache flag.
 - 🛡️ **Prompt Injection Defenses:** `<user_code>` XML boundary isolation and strict preambles to neutralize instruction hijacking.
 
-### Developer Experience & Operations
+### Web Interface & Developer Experience
 
+- 💻 **Monaco Code Editor:** Interactive code editing with line numbers, syntax highlighting, and `Ctrl+Enter` / `Cmd+Enter` review trigger.
+- 📊 **Results Panel:** Metric badges, severity distribution (Critical, High, Medium, Low), and expandable issue cards.
 - 🚦 **Sliding-Window Rate Limiting:** Configurable request caps per client IP returning HTTP 429 with `Retry-After`.
-- 🩺 **Health & Diagnostics:** `GET /health` endpoint inspecting provider status, cache capacity, and supported configurations.
+- 🩺 **Health & Diagnostics:** Live connectivity pill and `GET /health` endpoint inspecting provider status and cache capacity.
 - 🔍 **Distributed Tracing:** Auto-generated or propagated `X-Request-ID` header across all responses and structured logs.
-- 🧪 **100% Verified Backend Suite:** 32 comprehensive tests across 7 test suites validating routes, providers, cache, and edge cases.
+- 🧪 **114 Total Automated Tests:** 32 backend tests (Pytest) + 82 frontend unit and component tests (Vitest).
 
 ---
 
 ## 🏗️ System Architecture
 
 ```text
-                            ┌────────────────────────┐
-                            │        Client          │
-                            │   (Web / API Client)   │
-                            └───────────┬────────────┘
-                                        │ HTTP / REST (X-Request-ID)
-                                        ▼
+                            ┌─────────────────────────────────┐
+                            │        React 19 Frontend        │
+                            │   (Monaco Editor + Tailwind UI) │
+                            └────────────────┬────────────────┘
+                                             │ HTTP / REST (Vite Proxy /api)
+                                             ▼
     ┌────────────────────────────────────────────────────────────────────────┐
     │                            FastAPI Backend                             │
     │                                                                        │
@@ -88,6 +90,14 @@ For detailed technical diagrams and architectural decisions, see:
 
 ## 🛠️ Technology Stack
 
+### Frontend
+- **React 19** with **TypeScript**
+- **Vite 8** (Build tool & development server)
+- **Monaco Editor** (`@monaco-editor/react`)
+- **Tailwind CSS** (Styling & layout)
+- **Axios** (HTTP client with backoff retry & tracing)
+- **Vitest & React Testing Library** (82 unit tests)
+
 ### Backend
 - **Python 3.10+** (Asyncio native)
 - **FastAPI 0.141+**
@@ -101,7 +111,8 @@ For detailed technical diagrams and architectural decisions, see:
 - **Deterministic Mock Provider** (Offline testing and graceful fallback)
 
 ### Testing & Tooling
-- **Pytest** with **AnyIO**
+- **Pytest** with **AnyIO** (32 backend tests)
+- **Vitest** with **jsdom** (82 frontend tests)
 - **Structured JSON Logging** with ContextVars
 
 ---
@@ -115,7 +126,7 @@ ai-review-system/
 │   ├── exceptions.py               # Domain exceptions (408, 429, 502, 503) & FastAPI handlers
 │   ├── main.py                     # App factory, middlewares, exception handlers, and routing
 │   ├── models.py                   # Pydantic models (Enums, CodeRequest, ReviewResponse, Metadata)
-│   ├── requirements.txt            # Pinned dependencies
+│   ├── requirements.txt            # Pinned Python dependencies
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── health.py               # GET /health system diagnostics
@@ -136,6 +147,20 @@ ai-review-system/
 │       ├── logger.py               # Structured JSON logger with request context
 │       └── prompt_builder.py       # Mode prompts with XML injection guardrails
 │
+├── frontend/
+│   ├── src/
+│   │   ├── components/             # Header, Editor, Results, IssueCard, Skeleton, etc.
+│   │   ├── lib/                    # api.ts (Axios), constants.ts, types.ts
+│   │   ├── test/                   # Unit & component test suites (82 tests)
+│   │   ├── App.tsx                 # Main application shell
+│   │   ├── main.tsx                # React entry point
+│   │   └── index.css               # Tailwind CSS styles
+│   ├── package.json                # Frontend dependencies and npm scripts
+│   ├── tsconfig.json               # TypeScript configuration
+│   ├── tsconfig.node.json          # TypeScript node configuration
+│   ├── vite.config.ts              # Vite 8 config with proxy rewrite & React deduplication
+│   └── vitest.config.ts            # Vitest testing configuration
+│
 ├── docs/
 │   ├── ARCHITECTURE.md             # System architecture & component design
 │   ├── DEVELOPMENT.md              # Implementation roadmap & progress
@@ -144,7 +169,7 @@ ai-review-system/
 │   ├── UI-UX.md                    # Interface & interaction design
 │   └── superpowers/specs/          # Feature design specifications
 │
-├── test/
+├── test/                           # Backend test suite (32 tests)
 │   ├── test_cache.py               # Caching, TTL, and eviction tests
 │   ├── test_exceptions.py          # Domain error to HTTP status code tests
 │   ├── test_health.py              # Health check & X-Request-ID tests
@@ -165,12 +190,15 @@ ai-review-system/
 
 ## Prerequisites
 
-- Python 3.10 or later
-- Git
+- **Python 3.10+**
+- **Node.js 18+** and **npm 9+**
+- **Git**
 
 Verify your environment:
 ```bash
 python --version
+node --version
+npm --version
 git --version
 ```
 
@@ -185,39 +213,35 @@ cd ai-review-system
 
 ---
 
-## 2. Create & Activate Virtual Environment
+## 2. Backend Setup
 
-### Windows (PowerShell)
+### Virtual Environment
+
+#### Windows (PowerShell)
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-### macOS / Linux
+#### macOS / Linux
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
----
-
-## 3. Install Dependencies
-
+### Install Backend Dependencies
 ```bash
 pip install -r backend/requirements.txt
 ```
 
----
-
-## 4. Configure Environment Variables
-
+### Configure Environment Variables
 Create a `.env` file in the project root based on `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your settings:
+Edit `.env` with your desired configuration:
 
 ```ini
 # Provider selection: "gemini", "openai", or "mock"
@@ -243,23 +267,38 @@ CACHE_MAX_SIZE=1000
 RATE_LIMIT_RPM=30
 ```
 
-> 🔒 **Security Notice:** Never commit `.env` to version control. It is ignored by `.gitignore`.
+---
+
+## 3. Frontend Setup
+
+In a new terminal window, navigate to the `frontend/` directory and install the packages:
+
+```bash
+cd frontend
+npm install
+```
 
 ---
 
-## 5. Run the Server
+## 4. Running the Full Stack Application
 
-Start the API with Uvicorn:
+### Step 1: Start the Backend (FastAPI)
+From the project root (with virtual environment active):
 
-```powershell
-uvicorn backend.main:app --reload
+```bash
+uvicorn backend.main:app --port 8000 --reload
 ```
+- API Base: `http://localhost:8000/`
+- Interactive Swagger Docs: `http://localhost:8000/docs`
+- Health Diagnostics: `http://localhost:8000/health`
 
-The API will be available at:
-- **API Base:** `http://127.0.0.1:8000/`
-- **Health Diagnostics:** `http://127.0.0.1:8000/health`
-- **Swagger Documentation:** `http://127.0.0.1:8000/docs`
-- **ReDoc:** `http://127.0.0.1:8000/redoc`
+### Step 2: Start the Frontend (Vite)
+From the `frontend/` directory:
+
+```bash
+npm run dev
+```
+Open your browser at `http://localhost:5173` (or the port Vite assigns). The frontend dev server proxies all `/api/*` calls directly to the FastAPI backend at `http://localhost:8000/*`.
 
 ---
 
@@ -356,22 +395,20 @@ POST /review
 
 ---
 
-# 🧪 Testing
+# 🧪 Testing Suites
 
-Run the full automated test suite:
-
+### Running Backend Tests (Pytest)
 ```powershell
 pytest test/ -v
 ```
+- **32 tests** covering health diagnostics, review endpoints, caching, rate limiting, domain exceptions, prompt injection defense, and fallback cascades.
 
-### Test Coverage Highlights:
-- `test_health.py`: Diagnostics, versions, header propagation
-- `test_review.py`: Input constraints, 12 languages, 4 modes, mock engine
-- `test_cache.py`: SHA-256 key hashing, TTL expiration, LRU eviction
-- `test_prompt_builder.py`: Injection containment, XML boundary tags
-- `test_exceptions.py`: Semantic status code mappings (408, 429, 502, 503)
-- `test_rate_limiter.py`: Sliding window enforcement and IP isolation
-- `test_integration.py`: Live fallback cascade and middleware throttling
+### Running Frontend Tests (Vitest)
+```bash
+cd frontend
+npm test
+```
+- **82 tests** covering Monaco Editor, Header, Results Panel, Issue Cards, Axios API client, retry mechanisms, accessibility, and theme toggling.
 
 ---
 
@@ -386,34 +423,28 @@ pytest test/ -v
   - [x] Provider factory pattern
   - [x] Structured JSON schema mapping
   - [x] Offline mock reviewer
-- [x] **Backend Improvements (v1.0.0)**
-  - [x] Fully asynchronous pipeline (`async`/`await`)
-  - [x] Rich `ReviewMetadata` in all responses
-  - [x] 4 Specialized review modes (`comprehensive`, `security`, `performance`, `style`)
-  - [x] 12 Supported programming languages
-  - [x] Prompt injection XML guardrails
-  - [x] Domain exception hierarchy (408, 429, 502, 503)
+  - [x] Fallback cascade (Gemini $\rightarrow$ OpenAI $\rightarrow$ Mock)
+- [x] **Phase 3: Frontend Interface**
+  - [x] React 19 + TypeScript + Vite 8
+  - [x] Monaco code editor integration with syntax highlighting
+  - [x] Review modes and 12-language selector
+  - [x] Interactive results dashboard with metric badges
+  - [x] Responsive layout and dark theme design tokens
+- [x] **Phase 4: Polish & Resilience**
   - [x] In-memory SHA-256 hash-based TTL review cache
   - [x] Sliding-window client IP rate limiter
-  - [x] Structured JSON logger & `X-Request-ID` tracing middleware
-  - [x] OpenAI / OpenRouter provider integration
-  - [x] Automatic primary $\rightarrow$ fallback cascade
-  - [x] Detailed health diagnostics endpoint (`GET /health`)
-  - [x] 32/32 tests automated test suite
-- [x] **Phase 3: Frontend Interface**
-  - [x] Web-based code editor
-  - [x] Mode and language selector
-  - [x] Real-time review feedback & line annotations
-  - [x] Performance and metadata badges
-- [ ] **Phase 4: Integrations & History**
-  - [ ] Review history storage (PostgreSQL)
-  - [ ] GitHub repository and Pull Request integration
+  - [x] XML boundary prompt injection guardrails
+  - [x] Request ID distributed tracing (`X-Request-ID`)
+  - [x] Accessibility (ARIA live regions, keyboard shortcuts)
+- [ ] **Phase 5: Integrations & History**
+  - [ ] GitHub PR Webhook Integration & automatic diff review comments
+  - [ ] Review history persistence (PostgreSQL / SQLite)
 
 ---
 
 # 📄 License
 
-This project is maintained for educational and portfolio purposes.
+This project is open-source and maintained for educational and portfolio purposes.
 
 ---
 
