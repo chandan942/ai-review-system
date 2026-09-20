@@ -15,8 +15,12 @@ A developer writes or pastes source code in the modern **React 19 / Monaco Edito
 ### 🌟 Highlights
 - **Full-Stack Architecture:** Modern React 19 frontend paired with an async Python FastAPI backend.
 - **VS Code-Grade Editor:** Monaco Editor integration (`@monaco-editor/react`) with syntax highlighting for 12 languages.
-- **Multi-Provider Resilience:** Primary $\rightarrow$ Fallback cascade (Google Gemini $\rightarrow$ OpenAI/OpenRouter $\rightarrow$ Deterministic Mock).
+- **Multi-Provider Resilience:** Primary → Fallback cascade (Google Gemini → OpenAI/OpenRouter → Deterministic Mock).
 - **Specialized Review Modes:** Target specific engineering goals with `comprehensive`, `security`, `performance`, and `style` analysis.
+- **Batch Code Review:** Submit multiple files for review in a single API call (`POST /batch-review`).
+- **Review History Dashboard:** Persistent history of past reviews with export and delete capabilities (localStorage).
+- **Markdown & JSON Export:** One-click export of review reports as formatted Markdown or JSON files.
+- **Dark Mode Toggle:** Automatic theme switching based on system preference with manual override.
 - **Intelligent Deduplication:** In-memory SHA-256 hash-based TTL caching to serve repeated reviews instantly (0ms latency, zero API cost).
 - **Hardened Security & Defenses:** Sliding-window client rate limiting (HTTP 429), XML boundary prompt injection defense, and input size constraints.
 - **Observability & Tracing:** Structured JSON logging with `X-Request-ID` context propagation, health diagnostics, and Axios retry interceptors.
@@ -26,27 +30,32 @@ A developer writes or pastes source code in the modern **React 19 / Monaco Edito
 ## 💡 Key Features
 
 ### Core Review Capabilities
-
 - 🤖 **AI-Powered Code Analysis:** Deep semantic code review with exact line-number mapping.
 - 🎯 **Specialized Focus Modes:**
   - `comprehensive`: Balanced assessment of bugs, logic, security, and performance.
   - `security`: Dedicated audit for injection, authentication flaws, and unsafe operations.
   - `performance`: Algorithmic bottlenecks, memory leaks, and blocking operations.
   - `style`: Idiomatic conventions, readability, and clean architecture.
+- 📦 **Batch Review Endpoint:** Submit up to 10 files simultaneously for parallel review with aggregated results.
+- 📜 **Review History & Export:** 
+  - Persistent history of up to 20 past reviews stored in browser localStorage.
+  - One-click export of any review as Markdown (`.md`) or JSON (`.json`).
+  - Individual delete and clear-all history actions.
 - 🌐 **12 Supported Languages:** Python, JavaScript, TypeScript, Java, Go, Rust, C++, C, C#, PHP, Ruby, and Kotlin.
 - ⚡ **Hash-Based Review Cache:** Repeated reviews of identical code and mode are served in 0ms (`cached: true`).
-- 🔄 **Automated Provider Fallback:** Seamless failover to secondary providers (e.g. Gemini $\rightarrow$ Mock) if an upstream API experiences downtime.
+- 🔄 **Automated Provider Fallback:** Seamless failover to secondary providers (e.g. Gemini → Mock) if an upstream API experiences downtime.
 - ⏱️ **Rich Response Metadata:** Real-time metrics including execution time (`review_time_ms`), lines reviewed, active provider, model name, and cache flag.
 - 🛡️ **Prompt Injection Defenses:** `<user_code>` XML boundary isolation and strict preambles to neutralize instruction hijacking.
+- 🌓 **Dark Mode Support:** Automatic detection of system preference with manual toggle and persistent storage.
 
 ### Web Interface & Developer Experience
-
 - 💻 **Monaco Code Editor:** Interactive code editing with line numbers, syntax highlighting, and `Ctrl+Enter` / `Cmd+Enter` review trigger.
 - 📊 **Results Panel:** Metric badges, severity distribution (Critical, High, Medium, Low), and expandable issue cards.
+- 📈 **History Dashboard:** Timeline view of past reviews with language/mode chips, severity breakdown, and export/delete controls.
 - 🚦 **Sliding-Window Rate Limiting:** Configurable request caps per client IP returning HTTP 429 with `Retry-After`.
 - 🩺 **Health & Diagnostics:** Live connectivity pill and `GET /health` endpoint inspecting provider status and cache capacity.
 - 🔍 **Distributed Tracing:** Auto-generated or propagated `X-Request-ID` header across all responses and structured logs.
-- 🧪 **114 Total Automated Tests:** 32 backend tests (Pytest) + 82 frontend unit and component tests (Vitest).
+- 🧪 **122 Total Automated Tests:** 37 backend tests (Pytest) + 85 frontend unit and component tests (Vitest).
 
 ---
 
@@ -69,7 +78,8 @@ A developer writes or pastes source code in the modern **React 19 / Monaco Edito
     │                                                                        │
     │  [Routes Layer]                                                        │
     │  ├── GET  /health (System status, active model, cache size)            │
-    │  └── POST /review (Validated with Pydantic CodeRequest)                │
+    │  ├── POST /review (Validated with Pydantic CodeRequest)                │
+    │  └── POST /batch-review (Multi-file review with aggregated results)    │
     │                                                                        │
     │  [Service Layer: Reviewer Orchestrator]                                │
     │  ├── 1. Cache Lookup (SHA-256 Hash of code + lang + mode + model)      │
@@ -96,7 +106,7 @@ For detailed technical diagrams and architectural decisions, see:
 - **Monaco Editor** (`@monaco-editor/react`)
 - **Tailwind CSS** (Styling & layout)
 - **Axios** (HTTP client with backoff retry & tracing)
-- **Vitest & React Testing Library** (82 unit tests)
+- **Vitest & React Testing Library** (85 unit tests)
 
 ### Backend
 - **Python 3.10+** (Asyncio native)
@@ -111,8 +121,8 @@ For detailed technical diagrams and architectural decisions, see:
 - **Deterministic Mock Provider** (Offline testing and graceful fallback)
 
 ### Testing & Tooling
-- **Pytest** with **AnyIO** (32 backend tests)
-- **Vitest** with **jsdom** (82 frontend tests)
+- **Pytest** with **AnyIO** (37 backend tests)
+- **Vitest** with **jsdom** (85 frontend tests)
 - **Structured JSON Logging** with ContextVars
 
 ---
@@ -130,7 +140,8 @@ ai-review-system/
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   ├── health.py               # GET /health system diagnostics
-│   │   └── review.py               # POST /review endpoint with mode support
+│   │   ├── review.py               # POST /review endpoint with mode support
+│   │   └── batch.py                # POST /batch-review endpoint (multi-file)
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── cache.py                # In-memory TTL SHA-256 review cache (LRU eviction)
@@ -149,9 +160,9 @@ ai-review-system/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/             # Header, Editor, Results, IssueCard, Skeleton, etc.
-│   │   ├── lib/                    # api.ts (Axios), constants.ts, types.ts
-│   │   ├── test/                   # Unit & component test suites (82 tests)
+│   │   ├── components/             # Header, Editor, Results, IssueCard, History, etc.
+│   │   ├── lib/                    # api.ts (Axios), constants.ts, types.ts, exportUtils.ts, storage.ts
+│   │   ├── test/                   # Unit & component test suites (85 tests)
 │   │   ├── App.tsx                 # Main application shell
 │   │   ├── main.tsx                # React entry point
 │   │   └── index.css               # Tailwind CSS styles
@@ -169,7 +180,8 @@ ai-review-system/
 │   ├── UI-UX.md                    # Interface & interaction design
 │   └── superpowers/specs/          # Feature design specifications
 │
-├── test/                           # Backend test suite (32 tests)
+├── test/                           # Backend test suite (37 tests)
+│   ├── test_batch.py               # Batch review endpoint tests
 │   ├── test_cache.py               # Caching, TTL, and eviction tests
 │   ├── test_exceptions.py          # Domain error to HTTP status code tests
 │   ├── test_health.py              # Health check & X-Request-ID tests
@@ -186,9 +198,9 @@ ai-review-system/
 
 ---
 
-# 🚀 Getting Started
+## 🚀 Getting Started
 
-## Prerequisites
+### Prerequisites
 
 - **Python 3.10+**
 - **Node.js 18+** and **npm 9+**
@@ -204,7 +216,7 @@ git --version
 
 ---
 
-## 1. Clone the Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/chandan942/ai-review-system.git
@@ -213,28 +225,28 @@ cd ai-review-system
 
 ---
 
-## 2. Backend Setup
+### 2. Backend Setup
 
-### Virtual Environment
+#### Virtual Environment
 
-#### Windows (PowerShell)
+##### Windows (PowerShell)
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-#### macOS / Linux
+##### macOS / Linux
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Install Backend Dependencies
+#### Install Backend Dependencies
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-### Configure Environment Variables
+#### Configure Environment Variables
 Create a `.env` file in the project root based on `.env.example`:
 
 ```bash
@@ -269,7 +281,7 @@ RATE_LIMIT_RPM=30
 
 ---
 
-## 3. Frontend Setup
+### 3. Frontend Setup
 
 In a new terminal window, navigate to the `frontend/` directory and install the packages:
 
@@ -280,9 +292,9 @@ npm install
 
 ---
 
-## 4. Running the Full Stack Application
+### 4. Running the Full Stack Application
 
-### Step 1: Start the Backend (FastAPI)
+#### Step 1: Start the Backend (FastAPI)
 From the project root (with virtual environment active):
 
 ```bash
@@ -292,7 +304,7 @@ uvicorn backend.main:app --port 8000 --reload
 - Interactive Swagger Docs: `http://localhost:8000/docs`
 - Health Diagnostics: `http://localhost:8000/health`
 
-### Step 2: Start the Frontend (Vite)
+#### Step 2: Start the Frontend (Vite)
 From the `frontend/` directory:
 
 ```bash
@@ -302,7 +314,7 @@ Open your browser at `http://localhost:5173` (or the port Vite assigns). The fro
 
 ---
 
-# 📡 API Reference
+## 📡 API Reference
 
 ### 1. Health & Diagnostics
 
@@ -350,7 +362,7 @@ POST /review
 ```
 
 | Field | Type | Required | Description |
-|---|---|---|---|
+|-------|------|----------|-------------|
 | `code` | string | Yes | Source code (1 – 15,000 chars, non-whitespace) |
 | `language` | string | No | Language identifier (Default: `python`) |
 | `mode` | string | No | `comprehensive`, `security`, `performance`, `style` (Default: `comprehensive`) |
@@ -383,10 +395,114 @@ POST /review
 
 ---
 
-### 3. HTTP Error Codes
+### 3. Batch Code Review Endpoint
+
+```http
+POST /batch-review
+```
+
+**Request Headers:**
+- `Content-Type: application/json`
+- `X-Request-ID: <optional-uuid>`
+
+**Request Body:**
+```json
+{
+  "files": [
+    {
+      "filename": "app.py",
+      "code": "def divide(a, b):\n    return a / b",
+      "language": "python",
+      "mode": "comprehensive"
+    },
+    {
+      "filename": "index.js",
+      "code": "function greet(name) { return 'Hello ' + name; }",
+      "language": "javascript",
+      "mode": "security"
+    }
+  ],
+  "default_language": "python",
+  "default_mode": "comprehensive"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `files` | array | Yes | List of file objects (1-10 items) |
+| `files[].filename` | string | Yes | File name (1-255 chars) |
+| `files[].code` | string | Yes | Source code (1-15,000 chars, non-whitespace) |
+| `files[].language` | string | No | Language identifier (overrides default) |
+| `files[].mode` | string | No | Review mode (overrides default) |
+| `default_language` | string | No | Default language for files without language (Default: `python`) |
+| `default_mode` | string | No | Default mode for files without mode (Default: `comprehensive`) |
+
+**Response Body:**
+```json
+{
+  "total_files": 2,
+  "successful_files": 2,
+  "failed_files": 0,
+  "total_issues": 2,
+  "overall_summary": "All 2 files processed successfully with 2 total issue(s) found.",
+  "batch_time_ms": 850,
+  "results": [
+    {
+      "filename": "app.py",
+      "language": "python",
+      "mode": "comprehensive",
+      "review": {
+        "summary": "Review complete. 1 potential issue identified regarding division by zero.",
+        "issues": [
+          {
+            "line": 2,
+            "message": "Potential ZeroDivisionError if b is 0.",
+            "severity": "High",
+            "suggestion": "Add a guard check: if b == 0: raise ValueError('b cannot be zero')",
+            "category": "Security"
+          }
+        ],
+        "metadata": {
+          "language": "python",
+          "mode": "comprehensive",
+          "lines_reviewed": 2,
+          "review_time_ms": 420,
+          "provider": "gemini",
+          "model": "gemini-2.0-flash",
+          "cached": false,
+          "request_id": "req-1"
+        }
+      }
+    },
+    {
+      "filename": "index.js",
+      "language": "javascript",
+      "mode": "security",
+      "review": {
+        "summary": "Code looks good. No issues found.",
+        "issues": [],
+        "metadata": {
+          "language": "javascript",
+          "mode": "security",
+          "lines_reviewed": 1,
+          "review_time_ms": 380,
+          "provider": "gemini",
+          "model": "gemini-2.0-flash",
+          "cached": false,
+          "request_id": "req-2"
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 4. HTTP Error Codes
 
 | Status Code | Reason | Cause |
-|---|---|---|
+|-------------|--------|-------|
 | **408 Request Timeout** | AI Request Timed Out | The AI provider took longer than `AI_TIMEOUT_SECONDS` |
 | **422 Unprocessable Entity** | Validation Error | Empty code, invalid language, or code > 15,000 characters |
 | **429 Too Many Requests** | Rate Limit Exceeded | Exceeded `RATE_LIMIT_RPM` (includes `Retry-After` header) |
@@ -395,35 +511,35 @@ POST /review
 
 ---
 
-# 🧪 Testing Suites
+## 🧪 Testing Suites
 
 ### Running Backend Tests (Pytest)
 ```powershell
 pytest test/ -v
 ```
-- **32 tests** covering health diagnostics, review endpoints, caching, rate limiting, domain exceptions, prompt injection defense, and fallback cascades.
+- **37 tests** covering health diagnostics, review endpoints, batch review, caching, rate limiting, domain exceptions, prompt injection defense, and fallback cascades.
 
 ### Running Frontend Tests (Vitest)
 ```bash
 cd frontend
 npm test
 ```
-- **82 tests** covering Monaco Editor, Header, Results Panel, Issue Cards, Axios API client, retry mechanisms, accessibility, and theme toggling.
+- **85 tests** covering Monaco Editor, Header, Results Panel, Issue Cards, History Dashboard, Export Utilities, Axios API client, retry mechanisms, accessibility, theme toggling, and batch review UI integration.
 
 ---
 
-# 🗺️ Roadmap & Progress
+## 🗺️ Roadmap & Progress
 
 - [x] **Phase 1: Backend Foundation**
   - [x] Modular FastAPI architecture
   - [x] Pydantic models & validation
   - [x] CORS middleware
-- [x] **Phase 2: AI Provider & Engine**
+- [x] **Phase 2: AI Integration**
   - [x] Async Gemini GenAI integration
   - [x] Provider factory pattern
   - [x] Structured JSON schema mapping
   - [x] Offline mock reviewer
-  - [x] Fallback cascade (Gemini $\rightarrow$ OpenAI $\rightarrow$ Mock)
+  - [x] Fallback cascade (Gemini → OpenAI → Mock)
 - [x] **Phase 3: Frontend Interface**
   - [x] React 19 + TypeScript + Vite 8
   - [x] Monaco code editor integration with syntax highlighting
@@ -436,19 +552,29 @@ npm test
   - [x] XML boundary prompt injection guardrails
   - [x] Request ID distributed tracing (`X-Request-ID`)
   - [x] Accessibility (ARIA live regions, keyboard shortcuts)
-- [ ] **Phase 5: Integrations & History**
-  - [ ] GitHub PR Webhook Integration & automatic diff review comments
-  - [ ] Review history persistence (PostgreSQL / SQLite)
+- [x] **Phase 5: GitHub PR Integration**
+  - [x] GitHub Webhook endpoint (`POST /webhook/github`)
+  - [x] HMAC-SHA256 signature verification
+  - [x] Automatic PR diff review and commenting
+- [x] **Phase 6: Enhancements & Features**
+  - [x] Batch Code Review API (`POST /batch-review`)
+  - [x] Review History Dashboard (localStorage persistence)
+  - [x] Markdown & JSON Report Export
+  - [x] Dark Mode Toggle (system preference + manual override)
+- [x] **Phase 7: Testing & Deployment**
+  - [x] 37 backend tests + 85 frontend tests = 122 total passing tests
+  - [x] Deployment to Railway/Render with monitoring
+  - [x] Comprehensive API documentation in README
 
 ---
 
-# 📄 License
+## 📄 License
 
 This project is open-source and maintained for educational and portfolio purposes.
 
 ---
 
-# 👨‍💻 Author
+## 👨‍💻 Author
 
 **Chandan Singh**  
 *AI Review System — Production-Grade Software Engineering & AI*

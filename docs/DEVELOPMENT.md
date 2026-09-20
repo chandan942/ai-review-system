@@ -1,7 +1,7 @@
 # Development Plan & Roadmap
 ## AI Code Review System
 
-**Version:** 1.0  
+**Version:** 1.1.0  
 **Date:** 2026-09-20  
 **Status:** Active  
 
@@ -20,7 +20,8 @@ This plan converts the PRD, SRS, Architecture, and UI/UX documents into an actio
 | **Phase 3** | Frontend | ✅ **DONE** | 3-4 days | Phase 1 (Phase 2 optional — can use mock) |
 | **Phase 4** | Polish & Edge Cases | ✅ **DONE** | 2 days | Phase 2 + 3 |
 | **Phase 5** | GitHub PR Integration | ✅ **DONE** | 3-4 days | Phase 2 |
-| **Phase 6** | Testing & Deployment | ✅ **DONE** | 2-3 days | Phase 4 |
+| **Phase 6** | Advanced Features & Enhancements | ✅ **DONE** | 2-3 days | Phase 3 + 4 |
+| **Phase 7** | Testing & Deployment | ✅ **DONE** | 2-3 days | Phase 4 + 6 |
 
 ### Dependency Graph
 
@@ -30,8 +31,9 @@ graph LR
     P2["Phase 2<br/>AI Integration<br/>✅ DONE"]
     P3["Phase 3<br/>Frontend<br/>✅ DONE"]
     P4["Phase 4<br/>Polish & Edge Cases<br/>✅ DONE"]
-    P5["Phase 5<br/>GitHub PR Integration<br/>🔲 NOT STARTED"]
-    P6["Phase 6<br/>Testing & Deployment<br/>✅ DONE"]
+    P5["Phase 5<br/>GitHub PR Integration<br/>✅ DONE"]
+    P6["Phase 6<br/>Advanced Features<br/>✅ DONE"]
+    P7["Phase 7<br/>Testing & Deployment<br/>✅ DONE"]
 
     P1 --> P2
     P1 --> P3
@@ -39,10 +41,8 @@ graph LR
     P3 --> P4
     P2 --> P5
     P4 --> P6
+    P6 --> P7
 ```
-
-> [!TIP]
-> **Phase 3 (Frontend) can start in parallel with Phase 2** since the mock reviewer already works. Build the frontend against mock data, then swap in real AI.
 
 ---
 
@@ -84,7 +84,7 @@ All Phase 2 tasks are complete. The backend now features:
 - Sliding-window client IP rate limiter (HTTP 429 with `Retry-After`)
 - Structured JSON logger with `X-Request-ID` contextvars tracing
 - Domain exception hierarchy (408, 429, 502, 503)
-- 32/32 automated tests passing across 7 test suites
+- Comprehensive automated test suites passing
 
 ### Tasks
 
@@ -118,31 +118,6 @@ All Phase 2 tasks are complete. The backend now features:
 - [x] OpenAI / OpenRouter provider integration implemented
 - [x] Automatic primary → fallback cascade implemented
 - [x] Detailed health diagnostics endpoint implemented
-- [x] 32/32 tests automated test suite passing
-
-### Prompt Engineering Notes
-
-The review prompt should instruct the AI to return a **specific JSON schema**:
-```
-Analyze the following {language} code. Return a JSON object with:
-- "summary": one sentence overall assessment
-- "issues": array of objects, each with:
-  - "line": integer line number
-  - "message": what's wrong
-  - "severity": "Critical" | "High" | "Medium" | "Low"
-  - "suggestion": how to fix it
-
-Rules:
-- Only report genuine issues, not style nitpicks unless significant
-- Be specific about line numbers
-- Keep suggestions actionable and concise
-- If the code is clean, return an empty issues array
-
-Code:
-```{language}
-{code}
-```
-```
 
 ---
 
@@ -155,7 +130,7 @@ All tasks complete. The frontend now features:
 - React 19 with TypeScript and Vite 8
 - Monaco Editor integration (`@monaco-editor/react`) for syntax highlighting
 - Tailwind CSS for styling
-- Header with logo and tagline
+- Header with logo, health badge, and dark mode toggle
 - Code editor panel with line numbers and language selector
 - "Review Code" submit button with Ctrl+Enter shortcut
 - Results panel with loading, error, empty, and success states
@@ -164,8 +139,7 @@ All tasks complete. The frontend now features:
 - Responsive layout (mobile stack)
 - Integration with backend via Axios proxy (`/api`)
 - Environment variables for API base URL and timeout
-- Dockerfile for containerization
-- 82 unit tests passing with Vitest
+- 85 unit tests passing with Vitest
 - Production build completes successfully
 
 ### Tasks
@@ -174,7 +148,7 @@ All tasks complete. The frontend now features:
 |---|---|---|---|
 | 3.1 | Create `frontend/` directory with `index.html`, `style.css`, `app.js` | P0 | ✅ Done |
 | 3.2 | Implement header with logo and tagline | P0 | ✅ Done |
-| 3.3 | Build code editor panel (textarea with line numbers or CodeMirror) | P0 | ✅ Done (using Monaco Editor) |
+| 3.3 | Build code editor panel (Monaco Editor) | P0 | ✅ Done |
 | 3.4 | Build language selector dropdown | P0 | ✅ Done |
 | 3.5 | Build "Review Code" submit button with Ctrl+Enter shortcut | P0 | ✅ Done |
 | 3.6 | Build results panel — empty state | P0 | ✅ Done |
@@ -183,24 +157,13 @@ All tasks complete. The frontend now features:
 | 3.9 | Build issue card component with severity color-coding | P0 | ✅ Done |
 | 3.10 | Build results panel — error state | P0 | ✅ Done |
 | 3.11 | Build results panel — no issues (success) state | P0 | ✅ Done |
-| 3.12 | Connect frontend to backend via `fetch()` to POST `/review` | P0 | ✅ Done (via Axios) |
+| 3.12 | Connect frontend to backend via Axios to POST `/review` | P0 | ✅ Done |
 | 3.13 | Add character count display (0/15,000) | P1 | ✅ Done |
 | 3.14 | Add stagger fade-in animation for issue cards | P1 | ✅ Done |
 | 3.15 | Implement responsive layout (mobile stack) | P1 | ✅ Done |
-| 3.16 | Mount frontend as static files in FastAPI | P0 | ✅ Done (via Vite build and FastAPI static mounting) |
+| 3.16 | Mount frontend as static files in FastAPI | P0 | ✅ Done |
 | 3.17 | Apply design tokens from UI/UX document (colors, typography, spacing) | P0 | ✅ Done |
 | 3.18 | Add Google Fonts (Inter, JetBrains Mono) | P0 | ✅ Done |
-
-### Definition of Done
-
-- [x] User can paste code, select language, and click Review
-- [x] Loading state shows while waiting for response
-- [x] Results display with correct severity colors and icons
-- [x] Error state displays on API failure
-- [x] Empty state shows before first review
-- [x] Works on Chrome, Firefox, Edge (desktop)
-- [x] Responsive on tablet and mobile
-- [x] Dark theme matches the design tokens
 
 ---
 
@@ -215,92 +178,95 @@ All tasks complete.
 | # | Task | Priority | Status |
 |---|---|---|---|
 | 4.1 | Add input validation on frontend (empty code, max length) | P0 | ✅ Done |
-| 4.2 | Add input validation on backend (empty after trim, max 15K chars) | P0 | ✅ Done (Pydantic + field_validator) |
-| 4.3 | Add `ReviewMetadata` to response (language, lines_reviewed, review_time_ms) | P1 | ✅ Done (rich metadata with provider, model, cached, request_id) |
-| 4.4 | Add `GET /health` endpoint with AI provider status | P1 | ✅ Done (provider, model, cache_size, supported_languages, supported_modes) |
-| 4.5 | Improve prompt injection guardrails in system prompt | P0 | ✅ Done (XML `<user_code>` boundary isolation) |
-| 4.6 | Handle AI returning malformed JSON (fallback parsing) | P0 | ✅ Done (Pydantic model_validate_json with ProviderError) |
+| 4.2 | Add input validation on backend (empty after trim, max 15K chars) | P0 | ✅ Done |
+| 4.3 | Add `ReviewMetadata` to response (language, lines_reviewed, review_time_ms) | P1 | ✅ Done |
+| 4.4 | Add `GET /health` endpoint with AI provider status | P1 | ✅ Done |
+| 4.5 | Improve prompt injection guardrails in system prompt | P0 | ✅ Done |
+| 4.6 | Handle AI returning malformed JSON (fallback parsing) | P0 | ✅ Done |
 | 4.7 | Add keyboard accessibility (Tab navigation, focus rings) | P1 | ✅ Done |
 | 4.8 | Add `aria-live` and `role="alert"` for screen readers | P1 | ✅ Done |
 | 4.9 | Add `prefers-reduced-motion` support | P2 | ✅ Done |
-| 4.10 | Remove `print()` statements, add proper logging | P1 | ✅ Done (structured JSON logger with contextvars) |
-| 4.11 | Remove `allow_origins=["*"]`, restrict to frontend domain | P0 | ✅ Done (configured CORS to allow frontend origin) |
-
-### Definition of Done
-
-- [x] Submitting empty code shows validation error (no API call) — backend returns 422
-- [x] Submitting 15K characters shows max length error — backend returns 422
-- [x] AI malformed response returns graceful error, not 500 — ProviderError raised
-- [x] All interactive elements accessible via keyboard
-- [x] Screen reader labels and live regions implemented
-- [x] Reduced motion preferences respected
-- [x] No `print()` in production code — structured logger used throughout
-- [x] CORS locked to frontend origin
+| 4.10 | Remove `print()` statements, add proper logging | P1 | ✅ Done |
+| 4.11 | Restrict CORS to frontend origin | P0 | ✅ Done |
 
 ---
 
-## 6. Phase 5 — GitHub PR Integration (Post-MVP)
+## 6. Phase 5 — GitHub PR Integration ✅ DONE
 
-**Goal:** Automatically review GitHub Pull Requests.
+**Goal:** Automatically review GitHub Pull Requests via Webhooks.
 
-### Tasks
+All Phase 5 tasks are complete. The backend now features:
 
-| # | Task | Priority | Est. |
-|---|---|---|---|
-| 5.1 | Research GitHub Webhooks + REST API for PR events | P1 | 1 hr |
-| 5.2 | Create `POST /webhook/github` endpoint to receive PR events | P1 | 1 hr |
-| 5.3 | Parse PR diff using `unidiff` library | P1 | 2 hrs |
-| 5.4 | Send changed files/diffs to AI reviewer | P1 | 1 hr |
-| 5.5 | Post review comments back to PR via GitHub API | P1 | 2 hrs |
-| 5.6 | Add webhook secret validation (security) | P1 | 30 min |
-| 5.7 | Handle large PRs (chunk into multiple reviews) | P2 | 2 hrs |
-| 5.8 | Add GitHub OAuth for user connection | P2 | 2 hrs |
-
-### Definition of Done
-
-- [ ] Opening/updating a PR triggers an automatic review
-- [ ] Review comments appear directly on the PR
-- [ ] Only changed lines are reviewed (not full files)
-- [ ] Webhook is validated with secret
-
----
-
-## 7. Phase 6 — Testing & Deployment ✅ DONE
-
-**Goal:** Add tests, deploy to production, and monitor.
-
-All tasks complete.
+- GitHub PR Webhook endpoint (`POST /webhook/github`)
+- Constant-time HMAC-SHA256 signature verification (`X-Hub-Signature-256`)
+- Automated PR diff fetching, chunking, and review analysis
+- Automated review comments posting back to GitHub Pull Requests
+- Secure webhook configuration via `GITHUB_WEBHOOK_SECRET` and `GITHUB_TOKEN`
 
 ### Tasks
 
 | # | Task | Priority | Status |
 |---|---|---|---|
-| 6.1 | Install `pytest` + `httpx` for API testing | P0 | ✅ Done |
-| 6.2 | Write tests for `/review` endpoint (valid input, empty, too long, bad language) | P0 | ✅ Done (test_review.py — 10 tests) |
-| 6.3 | Write tests for AI provider switching (mock ↔ real) | P1 | ✅ Done (test_review.py + test_integration.py) |
-| 6.4 | Write tests for prompt builder output format | P1 | ✅ Done (test_prompt_builder.py) |
-| 6.5 | Add `Procfile` or `railway.json` for deployment | P0 | ✅ Done (added `Procfile` for Railway) |
-| 6.6 | Deploy backend to Railway/Render | P0 | ✅ Done (deployed to Railway) |
-| 6.7 | Configure production environment variables | P0 | ✅ Done (Railway variables set) |
-| 6.8 | Test deployed API from browser | P0 | ✅ Done (frontend consumes deployed API) |
-| 6.9 | Set up UptimeRobot for monitoring | P2 | ✅ Done (monitoring configured) |
-| 6.10 | Write `README.md` with setup instructions | P1 | ✅ Done (comprehensive README with API reference) |
+| 5.1 | Research GitHub Webhooks + REST API for PR events | P1 | ✅ Done |
+| 5.2 | Create `POST /webhook/github` endpoint to receive PR events | P1 | ✅ Done |
+| 5.3 | Parse PR diff and extract changed files | P1 | ✅ Done |
+| 5.4 | Send changed files/diffs to AI reviewer | P1 | ✅ Done |
+| 5.5 | Post review comments back to PR via GitHub API | P1 | ✅ Done |
+| 5.6 | Add webhook secret validation (HMAC-SHA256) | P1 | ✅ Done |
+| 5.7 | Handle large PRs with appropriate file chunking | P2 | ✅ Done |
+| 5.8 | Add error logging and resilience for webhook deliveries | P1 | ✅ Done |
 
-### Test Suites (32 tests passing)
+---
 
-| Suite | File | Tests | Coverage |
+## 7. Phase 6 — Advanced Features & Enhancements ✅ DONE
+
+**Goal:** Extend system capabilities with batch reviews, persistent history, exports, and theme toggling.
+
+All Phase 6 tasks are complete:
+
+- **Batch Code Review (`POST /batch-review`):** Submit up to 10 files in a single request with aggregated summaries and per-file result collection.
+- **Review History Dashboard:** LocalStorage persistence (up to 20 past reviews), review card previews, one-click reload into editor, per-item delete, and clear-all actions.
+- **Markdown & JSON Export:** Client-side generation and downloading of detailed Markdown reports and raw JSON data.
+- **Dark Mode Support:** Automatic system preference detection (`prefers-color-scheme`), manual toggle in header, and persistent theme choice.
+
+### Tasks
+
+| # | Task | Priority | Status |
+|---|---|---|---|
+| 6.1 | Design and implement `POST /batch-review` endpoint in backend | P1 | ✅ Done |
+| 6.2 | Add Pydantic schemas for `BatchReviewRequest`, `BatchReviewResponse`, and `BatchFileItem` | P1 | ✅ Done |
+| 6.3 | Implement client-side `storage.ts` for safe localStorage management | P1 | ✅ Done |
+| 6.4 | Implement `exportUtils.ts` for Markdown and JSON report downloads | P1 | ✅ Done |
+| 6.5 | Build `ReviewHistory.tsx` component with restore, delete, and export controls | P1 | ✅ Done |
+| 6.6 | Add dark mode toggle button in `Header.tsx` with Tailwind dark class support | P1 | ✅ Done |
+| 6.7 | Add automated unit tests for batch review and history export utilities | P0 | ✅ Done |
+
+---
+
+## 8. Phase 7 — Testing & Deployment ✅ DONE
+
+**Goal:** Maintain test coverage, deploy to production, and establish monitoring.
+
+All tasks complete.
+
+### Test Suites (122 tests passing)
+
+| Suite | File / Scope | Tests | Coverage |
 |---|---|---|---|
 | Health | `test_health.py` | Health check, X-Request-ID propagation | ✅ |
 | Review | `test_review.py` | 10 tests: validation, modes, languages, providers, factory | ✅ |
+| Batch Review | `test_batch.py` | Multi-file, single-file, 422 validations | ✅ |
 | Cache | `test_cache.py` | Set/get, TTL expiration, LRU eviction, cache miss, clear | ✅ |
 | Prompt Builder | `test_prompt_builder.py` | Template output, XML injection guardrails | ✅ |
 | Exceptions | `test_exceptions.py` | Domain error → HTTP status code mapping (408, 429, 502, 503) | ✅ |
 | Rate Limiter | `test_rate_limiter.py` | Sliding window enforcement, IP isolation | ✅ |
 | Integration | `test_integration.py` | Fallback cascade, middleware throttling | ✅ |
+| Frontend Suites | Vitest (9 suites) | 85 unit and component tests (Editor, Results, History, Export, API, etc.) | ✅ |
 
 ### Definition of Done
 
-- [x] All API tests pass (32/32)
+- [x] All 37 backend tests pass
+- [x] All 85 frontend tests pass (122 total automated tests)
 - [x] App deployed and accessible via public URL
 - [x] Environment variables configured in hosting platform
 - [x] README has local setup + deployment instructions
@@ -308,35 +274,7 @@ All tasks complete.
 
 ---
 
-## 8. MVP Checklist
-
-> [!IMPORTANT]
-> MVP = Phase 1 + Phase 2 + Phase 3 + minimal Phase 4. The product is shippable after these are done.
-
-- [x] **Backend:** POST `/review` returns real AI-generated review
-- [x] **Frontend:** User can paste code, select language, submit, see results
-- [x] **Validation:** Empty code and oversized code are rejected
-- [x] **Error handling:** Timeouts and AI failures show user-friendly errors
-- [x] **Security:** API keys in `.env`, prompt injection guardrails, no code execution
-- [x] **Accessibility:** Keyboard navigable, screen reader labels (completed in Phase 4)
-
-> ✅ MVP is complete. The system is production-ready.
-
----
-
-## 9. Risk Register
-
-| Risk | Phase | Mitigation | Owner |
-|---|---|---|---|
-| AI returns inconsistent JSON format | Phase 2 | Strict prompt + fallback JSON parser | Backend |
-| Gemini API rate limited on free tier | Phase 2 | Add caching for identical code; fallback to OpenAI | Backend |
-| Frontend looks broken on Safari | Phase 3 | Test on Safari; use standard CSS (no cutting-edge features) | Frontend |
-| GitHub webhook delivery failures | Phase 5 | Add retry logic; log all webhook payloads | Backend |
-| Deployment env vars misconfigured | Phase 6 | Document all required vars in README; add startup validation | DevOps |
-
----
-
-## 10. Priorities at a Glance
+## 9. Priorities at a Glance
 
 ```
 COMPLETED:
@@ -344,20 +282,12 @@ COMPLETED:
   ✅ Phase 2: AI Integration (Gemini, OpenAI, Mock, Fallback, Modes, Caching, Rate Limiting)
   ✅ Phase 3: Frontend Web UI (Editor, Results Panel, Language/Mode Selector)
   ✅ Phase 4: Polish & Edge Cases (Accessibility, Validation, Logging, CORS)
-  ✅ Phase 6: Testing & Deployment (32/32 tests, deployed to Railway, monitoring)
+  ✅ Phase 5: GitHub PR Integration (Webhooks, HMAC Verification, Diff Comments)
+  ✅ Phase 6: Advanced Features (Batch Review API, Review History, Export Utilities, Dark Mode)
+  ✅ Phase 7: Testing & Deployment (122/122 tests passing, Railway deployment, monitoring)
 
-NOW (Current Priority):
-  → Phase 5: GitHub PR integration (webhooks, diff parsing)
-
-NEXT:
-  → (Optional) Enhancements: dark mode toggle, review history, export reports
-
-LATER:
-  → (Optional) Advanced features: batch review, scheduled reviews, team analytics
+NEXT (Future Possibilities):
+  → Team analytics & metrics dashboard
+  → Scheduled repository audits & notifications
+  → Multi-repo GitHub App OAuth integration
 ```
-
-> [!TIP]
-> **Recommended next steps:**
-> 1. Implement GitHub PR webhook integration (Phase 5)
-> 2. Add review history dashboard (optional enhancement)
-> 3. Enable dark mode toggle based on system preference (optional)
