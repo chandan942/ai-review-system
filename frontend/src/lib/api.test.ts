@@ -96,15 +96,16 @@ describe('API Client', () => {
       }
 
       const promise = submitCodeReview(request)
+      const assertion = expect(promise).rejects.toThrow(
+        'Request timed out. Please try again.'
+      )
 
       // Fast-forward through all retry delays
       await vi.advanceTimersByTimeAsync(1000)
       await vi.advanceTimersByTimeAsync(2000)
       await vi.advanceTimersByTimeAsync(4000)
 
-      await expect(promise).rejects.toThrow(
-        'Request timed out. Please try again.'
-      )
+      await assertion
       expect(instance.post).toHaveBeenCalledTimes(3)
     })
 
@@ -122,15 +123,16 @@ describe('API Client', () => {
       }
 
       const promise = submitCodeReview(request)
+      const assertion = expect(promise).rejects.toThrow(
+        'Network error. Please check your connection.'
+      )
 
       // Fast-forward through all retry delays
       await vi.advanceTimersByTimeAsync(1000)
       await vi.advanceTimersByTimeAsync(2000)
       await vi.advanceTimersByTimeAsync(4000)
 
-      await expect(promise).rejects.toThrow(
-        'Network error. Please check your connection.'
-      )
+      await assertion
       expect(instance.post).toHaveBeenCalledTimes(3)
     })
 
@@ -261,12 +263,13 @@ describe('API Client', () => {
       }
 
       const promise = submitCodeReview(request)
+      const assertion = expect(promise).rejects.toThrow('Service unavailable')
 
       await vi.advanceTimersByTimeAsync(1000)
       await vi.advanceTimersByTimeAsync(2000)
       await vi.advanceTimersByTimeAsync(4000)
 
-      await expect(promise).rejects.toThrow('Service unavailable')
+      await assertion
       expect(instance.post).toHaveBeenCalledTimes(3)
     })
   })
@@ -300,15 +303,16 @@ describe('API Client', () => {
       instance.get.mockRejectedValue(timeoutError)
 
       const promise = checkHealth()
+      const assertion = expect(promise).rejects.toThrow(
+        'Request timed out. Please try again.'
+      )
 
       // Fast-forward through all retry delays
       await vi.advanceTimersByTimeAsync(1000)
       await vi.advanceTimersByTimeAsync(2000)
       await vi.advanceTimersByTimeAsync(4000)
 
-      await expect(promise).rejects.toThrow(
-        'Request timed out. Please try again.'
-      )
+      await assertion
       expect(instance.get).toHaveBeenCalledTimes(3)
     })
 
@@ -320,15 +324,16 @@ describe('API Client', () => {
       instance.get.mockRejectedValue(networkError)
 
       const promise = checkHealth()
+      const assertion = expect(promise).rejects.toThrow(
+        'Network error. Please check your connection.'
+      )
 
       // Fast-forward through all retry delays
       await vi.advanceTimersByTimeAsync(1000)
       await vi.advanceTimersByTimeAsync(2000)
       await vi.advanceTimersByTimeAsync(4000)
 
-      await expect(promise).rejects.toThrow(
-        'Network error. Please check your connection.'
-      )
+      await assertion
       expect(instance.get).toHaveBeenCalledTimes(3)
     })
 

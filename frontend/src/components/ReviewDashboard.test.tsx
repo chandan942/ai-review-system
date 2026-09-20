@@ -113,16 +113,16 @@ describe('ReviewDashboard Component', () => {
     expect(screen.getByText(/\(Fresh\)/i)).toBeInTheDocument()
 
     // Severity filter pills
-    expect(screen.getByRole('button', { name: /All/i })).toHaveClass(/bg-accent\/20/) // Active by default
-    expect(screen.getByRole('button', { name: /Critical/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /High/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Medium/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Low/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Info/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^All$/i })).toHaveClass(/bg-accent\/20/) // Active by default
+    expect(screen.getByRole('button', { name: /^Critical\s*\d*$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^High\s*\d*$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Medium\s*\d*$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Low\s*\d*$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Info\s*\d*$/i })).toBeInTheDocument()
 
     // Issue count badges on filter pills
-    expect(screen.getByRole('button', { name: /Critical/i })).toHaveTextContent(/Critical\s*1/i)
-    expect(screen.getByRole('button', { name: /Low/i })).toHaveTextContent(/Low\s*1/i)
+    expect(screen.getByRole('button', { name: /^Critical\s*\d*$/i })).toHaveTextContent(/Critical\s*1/i)
+    expect(screen.getByRole('button', { name: /^Low\s*\d*$/i })).toHaveTextContent(/Low\s*1/i)
 
     // Issues list
     expect(screen.getByText(/Potential division by zero/i)).toBeInTheDocument()

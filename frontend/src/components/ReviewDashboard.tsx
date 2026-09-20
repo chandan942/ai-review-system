@@ -1,17 +1,26 @@
 import { useApp } from '../context/AppContext'
 import IssueCard from './IssueCard'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReviewIssue } from '../lib/types'
 import { IssueSeverity } from '../lib/types'
 
 const ReviewDashboard: React.FC = () => {
   const { state, dispatch } = useApp()
+  const [filterSeverity, setFilterSeverity] = useState<IssueSeverity | 'all'>(state.filterSeverity || 'all')
+
+  useEffect(() => {
+    setFilterSeverity(state.filterSeverity || 'all')
+  }, [state.filterSeverity])
+
+  const handleFilterChange = (severity: IssueSeverity | 'all') => {
+    setFilterSeverity(severity)
+    dispatch({ type: 'SET_FILTER_SEVERITY', payload: severity })
+  }
 
   // Handle retry when error occurs
   const handleRetry = () => {
     dispatch({ type: 'SET_LOADING', payload: true })
     dispatch({ type: 'SET_ERROR', payload: null })
-    // Trigger review again - would be handled in parent or via effect
   }
 
   // Clear results
@@ -24,12 +33,16 @@ const ReviewDashboard: React.FC = () => {
   // Filter issues based on selected severity
   const filteredIssues = state.reviewResult?.issues.filter(
     issue =>
-      state.filterSeverity === 'all' ||
-      issue.severity === state.filterSeverity
+      filterSeverity === 'all' ||
+      issue.severity === filterSeverity
   ) || []
 
   return (
-    <div className="flex-1 flex flex-col bg-card border border-border/20 rounded-lg overflow-hidden">
+    <section
+      role="region"
+      aria-label="Review Results"
+      className="flex-1 flex flex-col bg-card border border-border/20 rounded-lg overflow-hidden"
+    >
       {/* Dashboard Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-b border-border/20">
         <div className="flex-1 sm:flex-shrink-0">
@@ -48,6 +61,7 @@ const ReviewDashboard: React.FC = () => {
           <button
             onClick={handleClear}
             disabled={state.isLoading}
+            aria-label={state.reviewResult ? "Clear editor" : "Clear"}
             className="px-3 py-1.5 text-sm font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Clear
@@ -86,7 +100,6 @@ const ReviewDashboard: React.FC = () => {
         {state.error && !state.isLoading && !state.reviewResult && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-12 h-12 bg-red-500/10 text-red-400 mb-3 flex items-center justify-center rounded-lg">
-              {/* Error icon - simplified */}
               <span className="text-2xl">⚠️</span>
             </div>
             <h3 className="font-semibold mb-2">Something went wrong</h3>
@@ -119,10 +132,8 @@ const ReviewDashboard: React.FC = () => {
               >
                 Clear Editor
               </button>
-              {/* Sample code button would go here */}
               <button
                 onClick={() => {
-                  // Load sample code - simplified
                   dispatch({
                     type: 'SET_EDITOR_CONTENT',
                     payload: 'def calculate_average(numbers):\n    return sum(numbers) / len(numbers)\n\nresult = calculate_average([1, 2, 3, 4, 5])\nprint(f"Average: {result}")'
@@ -163,8 +174,8 @@ const ReviewDashboard: React.FC = () => {
               <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                 <button
                   type="button"
-                  className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${state.filterSeverity === 'all' ? 'bg-accent/20 text-accent' : ''}`}
-                  onClick={() => dispatch({ type: 'SET_FILTER_SEVERITY', payload: 'all' })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${filterSeverity === 'all' ? 'bg-accent/20 text-accent' : ''}`}
+                  onClick={() => handleFilterChange('all')}
                 >
                   All
                 </button>
@@ -173,8 +184,8 @@ const ReviewDashboard: React.FC = () => {
                     <button
                       key={severity}
                       type="button"
-                      className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${state.filterSeverity === severity ? `bg-${severity.toLowerCase()}/20 text-${severity.toLowerCase()}` : ''}`}
-                      onClick={() => dispatch({ type: 'SET_FILTER_SEVERITY', payload: severity })}
+                      className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${filterSeverity === severity ? `bg-${severity.toLowerCase()}/20 text-${severity.toLowerCase()}` : ''}`}
+                      onClick={() => handleFilterChange(severity)}
                     >
                       {severity}
                       {state.reviewResult.issues.filter(i => i.severity === severity).length > 0 && (
@@ -207,7 +218,7 @@ const ReviewDashboard: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }
 
