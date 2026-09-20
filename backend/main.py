@@ -8,6 +8,7 @@ from backend.exceptions import RateLimitExceededError, register_exception_handle
 from backend.routes.health import router as health_router
 from backend.routes.review import router as review_router
 from backend.routes.webhook import router as webhook_router
+from backend.routes.batch import router as batch_router
 from backend.services.rate_limiter import get_rate_limiter
 from backend.utils.logger import get_logger, set_current_request_id
 
@@ -83,6 +84,7 @@ app.add_middleware(
 app.include_router(review_router)
 app.include_router(health_router)
 app.include_router(webhook_router)
+app.include_router(batch_router)
 
 
 @app.get("/")

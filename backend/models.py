@@ -84,3 +84,42 @@ class HealthResponse(BaseModel):
     supported_languages: List[str]
     supported_modes: List[str]
     version: str
+
+
+# Batch Review schemas
+class BatchFileItem(BaseModel):
+    filename: str = Field(..., min_length=1, max_length=255)
+    code: str = Field(..., min_length=1, max_length=15000)
+    language: Optional[SupportedLanguage] = None
+    mode: Optional[ReviewMode] = None
+
+    @field_validator("code", mode="after")
+    @classmethod
+    def code_must_not_be_whitespace(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Code cannot be empty or whitespace only")
+        return v
+
+
+class BatchReviewRequest(BaseModel):
+    files: List[BatchFileItem] = Field(..., min_length=1, max_length=10)
+    default_language: SupportedLanguage = Field(default=SupportedLanguage.PYTHON)
+    default_mode: ReviewMode = Field(default=ReviewMode.COMPREHENSIVE)
+
+
+class BatchFileReviewResult(BaseModel):
+    filename: str
+    language: str
+    mode: str
+    review: Optional[ReviewResponse] = None
+    error: Optional[str] = None
+
+
+class BatchReviewResponse(BaseModel):
+    total_files: int
+    successful_files: int
+    failed_files: int
+    total_issues: int
+    overall_summary: str
+    batch_time_ms: int
+    results: List[BatchFileReviewResult]
