@@ -15,6 +15,7 @@ export interface AppState {
   error: string | null
   healthStatus: any | null
   filterSeverity: IssueSeverity | 'all'
+  isDark: boolean
 }
 
 export type AppAction =
@@ -26,6 +27,7 @@ export type AppAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_HEALTH_STATUS'; payload: any | null }
   | { type: 'SET_FILTER_SEVERITY'; payload: IssueSeverity | 'all' }
+  | { type: 'SET_DARK_MODE'; payload: boolean }
   | { type: 'RESET_STATE' }
 
 // Initial state
@@ -38,6 +40,7 @@ export const initialState: AppState = {
   error: null,
   healthStatus: null,
   filterSeverity: 'all',
+  isDark: false
 }
 
 // Reducer
@@ -62,6 +65,8 @@ export const appReducer = (
       return { ...state, healthStatus: action.payload }
     case 'SET_FILTER_SEVERITY':
       return { ...state, filterSeverity: action.payload }
+    case 'SET_DARK_MODE':
+      return { ...state, isDark: action.payload }
     case 'RESET_STATE':
       return initialState
     default:

@@ -10,6 +10,15 @@ const App: React.FC = () => {
   const { state, dispatch } = useApp()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Handle dark mode class on root element
+  useEffect(() => {
+    if (state.isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [state.isDark])
+
   // Handle form submission (Ctrl+Enter or button click)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

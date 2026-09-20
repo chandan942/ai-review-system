@@ -153,6 +153,24 @@ const Header: React.FC = () => {
             ))}
           </select>
         </div>
+
+        {/* Dark mode toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={healthLoading}
+            className={`px-3 py-1.5 text-sm font-medium rounded transition-all duration-150 ${
+              state.isDark
+                ? 'bg-accent/20 text-accent hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 active:scale-[0.98]'
+                : 'bg-transparent text-gray-300 hover:bg-bg/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 active:scale-[0.98]'
+            }`}
+            onClick={() => dispatch({ type: 'SET_DARK_MODE', payload: !state.isDark })}
+            aria-label="Toggle dark mode"
+            aria-pressed={state.isDark}
+          >
+            {state.isDark ? '☀️ Light' : '🌙 Dark'}
+          </button>
+        </div>
       </div>
     </header>
   )
