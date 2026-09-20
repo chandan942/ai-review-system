@@ -27,5 +27,11 @@ dist/
 build/
 *.egg-info/
 
+# Node dependencies
+node_modules/
+
+# Obsidian
+.obsidian/
+
 # Meta / Agent observation files
 skill-observations/
