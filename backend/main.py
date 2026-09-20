@@ -7,6 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from backend.exceptions import RateLimitExceededError, register_exception_handlers
 from backend.routes.health import router as health_router
 from backend.routes.review import router as review_router
+from backend.routes.webhook import router as webhook_router
 from backend.services.rate_limiter import get_rate_limiter
 from backend.utils.logger import get_logger, set_current_request_id
 
@@ -81,6 +82,7 @@ app.add_middleware(
 # 4. Register routers
 app.include_router(review_router)
 app.include_router(health_router)
+app.include_router(webhook_router)
 
 
 @app.get("/")
