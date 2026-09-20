@@ -73,7 +73,15 @@ const Header: React.FC = () => {
           ) : healthError ? (
             <span className="text-sm text-red-400">⚠️ {healthError}</span>
           ) : healthStatus ? (
-            getProviderBadge(healthStatus.provider)
+            <>
+              {getProviderBadge(healthStatus.provider)}
+              <div
+                aria-live="polite"
+                className="sr-only"
+              >
+                System status: {healthStatus.provider} is operational
+              </div>
+            </>
           ) : (
             <span className="text-sm text-gray-400">Unknown</span>
           )}

@@ -115,7 +115,12 @@ describe('App Integration', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(/2 Issues Found/i)).toBeInTheDocument()
+      // Check visible "Issues Found" text (not in sr-only live region)
+      const issuesFoundElements = screen.getAllByText(/2 Issues Found/i)
+      const visibleIssuesFound = issuesFoundElements.find(
+        el => !el.closest('[aria-live]')
+      )
+      expect(visibleIssuesFound).toBeInTheDocument()
       expect(screen.getByText(/Potential division by zero/i)).toBeInTheDocument()
       expect(screen.getByText(/Variable is never used/i)).toBeInTheDocument()
     })
@@ -165,7 +170,12 @@ describe('App Integration', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(/2 Issues Found/i)).toBeInTheDocument()
+      // Check visible "Issues Found" text (not in sr-only live region)
+      const issuesFoundElements = screen.getAllByText(/2 Issues Found/i)
+      const visibleIssuesFound = issuesFoundElements.find(
+        el => !el.closest('[aria-live]')
+      )
+      expect(visibleIssuesFound).toBeInTheDocument()
     })
   })
 
@@ -185,14 +195,24 @@ describe('App Integration', () => {
     fireEvent.click(submitBtn)
 
     await waitFor(() => {
-      expect(screen.getByText(/2 Issues Found/i)).toBeInTheDocument()
+      // Check visible "Issues Found" text (not in sr-only live region)
+      const issuesFoundElements = screen.getAllByText(/2 Issues Found/i)
+      const visibleIssuesFound = issuesFoundElements.find(
+        el => !el.closest('[aria-live]')
+      )
+      expect(visibleIssuesFound).toBeInTheDocument()
     })
 
     const clearBtn = screen.getByRole('button', { name: /^clear$/i })
     fireEvent.click(clearBtn)
 
     expect(textarea.value).toBe('')
-    expect(screen.queryByText(/2 Issues Found/i)).not.toBeInTheDocument()
+    // Check that there are no visible "Issues Found" texts (not in sr-only live regions)
+    const allIssuesFoundElements = screen.queryAllByText(/2 Issues Found/i)
+    const visibleIssuesFoundElements = allIssuesFoundElements.filter(
+      el => !el.closest('[aria-live]')
+    )
+    expect(visibleIssuesFoundElements).toHaveLength(0)
     expect(screen.getByText(/ready to review your code/i)).toBeInTheDocument()
   })
 

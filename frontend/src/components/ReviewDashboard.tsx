@@ -38,11 +38,20 @@ const ReviewDashboard: React.FC = () => {
   ) || []
 
   return (
-    <section
-      role="region"
-      aria-label="Review Results"
-      className="flex-1 flex flex-col bg-card border border-border/20 rounded-lg overflow-hidden"
-    >
+    <>
+      {state.reviewResult && (
+        <div
+          aria-live="polite"
+          className="sr-only"
+        >
+          Review complete: {state.reviewResult.issues.length} issues found
+        </div>
+      )}
+      <section
+        role="region"
+        aria-label="Review Results"
+        className="flex-1 flex flex-col bg-card border border-border/20 rounded-lg overflow-hidden"
+      >
       {/* Dashboard Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-b border-border/20">
         <div className="flex-1 sm:flex-shrink-0">
@@ -174,7 +183,10 @@ const ReviewDashboard: React.FC = () => {
               <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
                 <button
                   type="button"
-                  className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${filterSeverity === 'all' ? 'bg-accent/20 text-accent' : ''}`}
+                  className={`
+                    px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]
+                    ${filterSeverity === 'all' ? 'bg-accent/20 text-accent' : ''}
+                  `}
                   onClick={() => handleFilterChange('all')}
                 >
                   All
@@ -184,7 +196,13 @@ const ReviewDashboard: React.FC = () => {
                     <button
                       key={severity}
                       type="button"
-                      className={`px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] ${filterSeverity === severity ? `bg-${severity.toLowerCase()}/20 text-${severity.toLowerCase()}` : ''}`}
+                      className={`
+                        px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]
+                        ${filterSeverity === severity
+                          ? `bg-${severity.toLowerCase()}/20 text-${severity.toLowerCase()}`
+                          : ''
+                        }
+                      `}
                       onClick={() => handleFilterChange(severity)}
                     >
                       {severity}
@@ -219,6 +237,7 @@ const ReviewDashboard: React.FC = () => {
         )}
       </div>
     </section>
+  </>
   )
 }
 
