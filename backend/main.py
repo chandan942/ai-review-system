@@ -22,7 +22,7 @@ app = FastAPI(
 register_exception_handlers(app)
 
 
-# 2. Request ID Tracing Middleware
+# 2. Request ID Tracing & Security Headers Middleware
 class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
@@ -32,15 +32,23 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+
 # 3. Rate Limiting Middleware (applies to /review)
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Only rate limit the POST /review endpoint
         if request.url.path == "/review" and request.method == "POST":
-            client_ip = (
-                request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-                or (request.client.host if request.client else "127.0.0.1")
-            )
+            # Use connection IP directly to prevent X-Forwarded-For spoofing
+            client_ip = request.client.host if request.client else "127.0.0.1"
             limiter = get_rate_limiter()
             try:
                 limiter.check(client_ip)
@@ -59,11 +67,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Frontend dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

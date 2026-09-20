@@ -44,3 +44,13 @@ def test_x_request_id_header():
     response = client.get("/health", headers={"X-Request-ID": custom_id})
     assert response.status_code == 200
     assert response.headers.get("x-request-id") == custom_id
+
+
+def test_security_headers():
+    # Verify security headers are present
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.headers.get("x-content-type-options") == "nosniff"
+    assert response.headers.get("x-frame-options") == "DENY"
+    assert response.headers.get("x-xss-protection") == "1; mode=block"
+    assert response.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
