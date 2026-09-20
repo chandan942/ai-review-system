@@ -2,8 +2,11 @@ import './index.css'
 import Header from './components/Header'
 import CodeEditor from './components/CodeEditor'
 import ReviewDashboard from './components/ReviewDashboard'
+import ReviewHistory from './components/ReviewHistory'
 import { useApp } from './context/AppContext'
 import { submitCodeReview } from './lib/api'
+import { loadHistoryFromStorage, saveHistoryToStorage } from './lib/storage'
+import type { ReviewHistoryItem } from './lib/types'
 import { useEffect, useState } from 'react'
 
 const App: React.FC = () => {
@@ -18,6 +21,14 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark')
     }
   }, [state.isDark])
+
+  // Load history from storage on mount
+  useEffect(() => {
+    const savedHistory = loadHistoryFromStorage()
+    if (savedHistory.length > 0) {
+      dispatch({ type: 'SET_HISTORY', payload: savedHistory })
+    }
+  }, [dispatch])
 
   // Handle form submission (Ctrl+Enter or button click)
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +52,19 @@ const App: React.FC = () => {
 
       const result = await submitCodeReview(request)
       dispatch({ type: 'SET_REVIEW_RESULT', payload: result })
+
+      // Add to history
+      const historyItem: ReviewHistoryItem = {
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        timestamp: Date.now(),
+        code: state.editorContent,
+        language: state.selectedLanguage,
+        mode: state.selectedMode,
+        result,
+      }
+      dispatch({ type: 'ADD_TO_HISTORY', payload: historyItem })
+      const updatedHistory = [historyItem, ...state.history]
+      saveHistoryToStorage(updatedHistory)
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message || 'An unknown error occurred' })
     } finally {
@@ -118,9 +142,13 @@ const App: React.FC = () => {
             </form>
           </div>
 
-          {/* Review Dashboard Column */}
+          {/* Review Column */}
           <div className="flex-1 flex flex-col">
-            <ReviewDashboard />
+            {state.viewMode === 'history' ? (
+              <ReviewHistory />
+            ) : (
+              <ReviewDashboard />
+            )}
           </div>
         </main>
       </div>

@@ -16,6 +16,8 @@ export interface AppState {
   healthStatus: any | null
   filterSeverity: IssueSeverity | 'all'
   isDark: boolean
+  history: ReviewHistoryItem[]
+  viewMode: 'current' | 'history'
 }
 
 export type AppAction =
@@ -28,6 +30,10 @@ export type AppAction =
   | { type: 'SET_HEALTH_STATUS'; payload: any | null }
   | { type: 'SET_FILTER_SEVERITY'; payload: IssueSeverity | 'all' }
   | { type: 'SET_DARK_MODE'; payload: boolean }
+  | { type: 'SET_HISTORY'; payload: ReviewHistoryItem[] }
+  | { type: 'ADD_TO_HISTORY'; payload: ReviewHistoryItem }
+  | { type: 'CLEAR_HISTORY' }
+  | { type: 'SET_VIEW_MODE'; payload: 'current' | 'history' }
   | { type: 'RESET_STATE' }
 
 // Initial state
@@ -40,7 +46,9 @@ export const initialState: AppState = {
   error: null,
   healthStatus: null,
   filterSeverity: 'all',
-  isDark: false
+  isDark: false,
+  history: [],
+  viewMode: 'current'
 }
 
 // Reducer
@@ -67,6 +75,14 @@ export const appReducer = (
       return { ...state, filterSeverity: action.payload }
     case 'SET_DARK_MODE':
       return { ...state, isDark: action.payload }
+    case 'SET_HISTORY':
+      return { ...state, history: action.payload }
+    case 'ADD_TO_HISTORY':
+      return { ...state, history: [action.payload, ...state.history] }
+    case 'CLEAR_HISTORY':
+      return { ...state, history: [] }
+    case 'SET_VIEW_MODE':
+      return { ...state, viewMode: action.payload }
     case 'RESET_STATE':
       return initialState
     default:

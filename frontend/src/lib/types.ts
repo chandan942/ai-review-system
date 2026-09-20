@@ -59,6 +59,15 @@ export interface ReviewResponse {
   metadata: ReviewMetadata
 }
 
+export interface ReviewHistoryItem {
+  id: string
+  timestamp: number
+  code: string
+  language: SupportedLanguage
+  mode: ReviewMode
+  result: ReviewResponse
+}
+
 export interface HealthResponse {
   status: string
   provider: string

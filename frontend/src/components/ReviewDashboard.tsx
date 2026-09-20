@@ -3,10 +3,12 @@ import IssueCard from './IssueCard'
 import { useEffect, useState } from 'react'
 import type { ReviewIssue } from '../lib/types'
 import { IssueSeverity } from '../lib/types'
+import { exportAsMarkdown, exportAsJson } from '../lib/exportUtils'
 
 const ReviewDashboard: React.FC = () => {
   const { state, dispatch } = useApp()
   const [filterSeverity, setFilterSeverity] = useState<IssueSeverity | 'all'>(state.filterSeverity || 'all')
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   useEffect(() => {
     setFilterSeverity(state.filterSeverity || 'all')
@@ -28,6 +30,29 @@ const ReviewDashboard: React.FC = () => {
     dispatch({ type: 'SET_EDITOR_CONTENT', payload: '' })
     dispatch({ type: 'SET_REVIEW_RESULT', payload: null })
     dispatch({ type: 'SET_ERROR', payload: null })
+  }
+
+  // Handle Export
+  const handleExportMd = () => {
+    if (!state.reviewResult) return
+    exportAsMarkdown(
+      state.reviewResult,
+      state.editorContent,
+      state.selectedLanguage,
+      state.selectedMode
+    )
+    setShowExportMenu(false)
+  }
+
+  const handleExportJson = () => {
+    if (!state.reviewResult) return
+    exportAsJson(
+      state.reviewResult,
+      state.editorContent,
+      state.selectedLanguage,
+      state.selectedMode
+    )
+    setShowExportMenu(false)
   }
 
   // Filter issues based on selected severity
@@ -84,6 +109,36 @@ const ReviewDashboard: React.FC = () => {
             >
               Retry
             </button>
+          )}
+
+          {/* Export Menu Button */}
+          {state.reviewResult && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="px-3 py-1.5 text-sm font-medium rounded flex items-center gap-1 hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]"
+              >
+                Export
+                <span className="ml-0.5 text-xs">⌵</span>
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur rounded-md shadow-lg border border-border/20 z-20">
+                  <button
+                    onClick={handleExportMd}
+                    className="w-full text-left px-4 py-2 text-sm font-medium border-b border-border/20 hover:bg-bg/10 transition-colors"
+                  >
+                    📄 Markdown Report
+                  </button>
+                  <button
+                    onClick={handleExportJson}
+                    className="w-full text-left px-4 py-2 text-sm font-medium hover:bg-bg/10 transition-colors"
+                  >
+                    📊 JSON Data
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

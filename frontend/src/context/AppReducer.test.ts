@@ -170,6 +170,59 @@ describe('App Reducer', () => {
     expect(state.editorContent).toBe('new code')
   })
 
+  it('should handle history actions', () => {
+    const mockItem = {
+      id: 'item-1',
+      timestamp: Date.now(),
+      code: 'print("hello")',
+      language: 'python' as const,
+      mode: 'comprehensive' as const,
+      result: {
+        summary: 'Clean code',
+        issues: [],
+        metadata: {
+          language: 'python',
+          mode: 'comprehensive',
+          lines_reviewed: 1,
+          review_time_ms: 50,
+          provider: 'mock',
+          model: 'mock',
+          cached: false,
+        },
+      },
+    }
+
+    // SET_HISTORY
+    let state = appReducer(initialState, {
+      type: 'SET_HISTORY',
+      payload: [mockItem],
+    })
+    expect(state.history).toHaveLength(1)
+    expect(state.history[0].id).toBe('item-1')
+
+    // ADD_TO_HISTORY
+    const mockItem2 = { ...mockItem, id: 'item-2' }
+    state = appReducer(state, {
+      type: 'ADD_TO_HISTORY',
+      payload: mockItem2,
+    })
+    expect(state.history).toHaveLength(2)
+    expect(state.history[0].id).toBe('item-2')
+
+    // SET_VIEW_MODE
+    state = appReducer(state, {
+      type: 'SET_VIEW_MODE',
+      payload: 'history',
+    })
+    expect(state.viewMode).toBe('history')
+
+    // CLEAR_HISTORY
+    state = appReducer(state, {
+      type: 'CLEAR_HISTORY',
+    })
+    expect(state.history).toHaveLength(0)
+  })
+
   it('should return same state for unknown action type', () => {
     const action = { type: 'UNKNOWN_ACTION' } as any
     const state = appReducer(initialState, action)

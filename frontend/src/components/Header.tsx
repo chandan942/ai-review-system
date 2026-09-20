@@ -154,6 +154,33 @@ const Header: React.FC = () => {
           </select>
         </div>
 
+        {/* History view toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className={`px-3 py-1.5 text-sm font-medium rounded transition-all duration-150 flex items-center gap-1.5 ${
+              state.viewMode === 'history'
+                ? 'bg-accent/20 text-accent hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 active:scale-[0.98]'
+                : 'bg-transparent text-gray-300 hover:bg-bg/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 active:scale-[0.98]'
+            }`}
+            onClick={() =>
+              dispatch({
+                type: 'SET_VIEW_MODE',
+                payload: state.viewMode === 'history' ? 'current' : 'history',
+              })
+            }
+            aria-label="Toggle review history"
+            aria-pressed={state.viewMode === 'history'}
+          >
+            <span>📜 History</span>
+            {state.history.length > 0 && (
+              <span className="px-1.5 py-0.2 bg-accent/20 text-accent rounded-full text-xs font-bold">
+                {state.history.length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Dark mode toggle */}
         <div className="flex items-center gap-2">
           <button
