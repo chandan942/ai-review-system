@@ -46,17 +46,52 @@ class GeminiReviewProvider(BaseReviewProvider):
 
         def _call_gemini() -> str:
             client = self._get_client()
-            response = client.models.generate_content(
-                model=self._model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=ReviewResponse,
-                ),
-            )
-            if not response.text:
-                raise RuntimeError("Gemini returned an empty response.")
-            return response.text
+            max_retries = 3
+            base_delay = 1  # seconds
+            for attempt in range(max_retries):
+                try:
+                    response = client.models.generate_content(
+                        model=self._model_name,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            response_schema=ReviewResponse,
+                        ),
+                    )
+                    if not response.text:
+                        raise RuntimeError("Gemini returned an empty response.")
+                    return response.text
+                except Exception as e:
+                    # Check if it's a retryable error (503, 429, or other transient 5xx)
+                    is_retryable = False
+                    status_code = None
+                    if hasattr(e, 'code'):
+                        status_code = e.code
+                    elif hasattr(e, 'response') and hasattr(e.response, 'status_code'):
+                        status_code = e.response.status_code
+
+                    if status_code is not None:
+                        if status_code in [429, 503] or (500 <= status_code < 600):
+                            is_retryable = True
+                    # Also consider timeout errors as retryable
+                    if isinstance(e, asyncio.TimeoutError):
+                        is_retryable = True
+
+                    if not is_retryable or attempt == max_retries - 1:
+                        # If not retryable or last attempt, raise a ProviderError with retry info
+                        raise ProviderError(
+                            provider=self.provider_name,
+                            detail=f"Failed after {max_retries} attempts. Last error: {str(e)}"
+                        )
+
+                    # Log retry attempt
+                    print(f"Gemini API call failed (attempt {attempt + 1}/{max_retries}): {type(e).__name__}: {e}")
+                    if status_code is not None:
+                        print(f"HTTP status: {status_code}")
+
+                    # Exponential backoff
+                    delay = base_delay * (2 ** attempt)
+                    time.sleep(delay)
 
         try:
             response_text = await asyncio.wait_for(
@@ -68,6 +103,12 @@ class GeminiReviewProvider(BaseReviewProvider):
         except RuntimeError as e:
             raise e
         except Exception as e:
+            # Print the raw exception details for debugging
+            print(f"Gemini API call failed with exception: {type(e).__name__}: {e}")
+            # If it's an HTTP error, try to get more details
+            if hasattr(e, 'response'):
+                print(f"HTTP status: {e.response.status_code}")
+                print(f"HTTP response body: {e.response.text}")
             raise ProviderError(provider=self.provider_name, detail=str(e))
 
         try:

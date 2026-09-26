@@ -79,7 +79,7 @@ const ReviewDashboard: React.FC = () => {
       return {
         isFallback: true,
         provider: actualProvider,
-        reason: fallbackReason.startsWith('reason:') ? fallbackReason.substring(7) : 'Unknown error'
+        reason: fallbackReason || 'Unknown error'
       }
     }
 

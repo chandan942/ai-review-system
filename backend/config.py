@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://api.openai.com/v1"
 
     # Timeouts
-    ai_timeout_seconds: float = 30.0
+    ai_timeout_seconds: float = 90.0
 
     # Cache settings
     cache_ttl_seconds: int = 300

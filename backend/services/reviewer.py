@@ -59,6 +59,11 @@ async def review_code(code: str, language: str, mode: str = "comprehensive") -> 
         review_result = await primary_provider.review_code(code, language, mode)
     except Exception as e:
         primary_error = e
+        # Print the raw exception details for debugging
+        print(f"Primary provider exception: {type(e).__name__}: {e}")
+        if hasattr(e, 'response'):
+            print(f"HTTP status: {e.response.status_code}")
+            print(f"HTTP response body: {e.response.text}")
         logger.error(
             f"Primary provider '{primary_provider.provider_name}' failed: {e}",
             exc_info=True,
