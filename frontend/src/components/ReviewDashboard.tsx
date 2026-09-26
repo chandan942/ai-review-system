@@ -62,6 +62,10 @@ const ReviewDashboard: React.FC = () => {
       issue.severity === filterSeverity
   ) || []
 
+  // Check if result came from fallback/mock provider
+  const isFallbackResult = state.reviewResult?.metadata.provider.includes('_fallback') ||
+                          state.reviewResult?.metadata.provider.includes('mock')
+
   return (
     <>
       {state.reviewResult && (
@@ -141,6 +145,21 @@ const ReviewDashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Fallback Warning Banner */}
+        {isFallbackResult && (
+          <div className="px-4 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg my-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">⚠️</span>
+              <div>
+                <p className="font-medium">Review result from fallback provider</p>
+                <p className="text-sm text-red-400">
+                  {state.reviewResult?.metadata.provider.replace('_fallback_from', ' → Fallback from ')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dashboard Body */}

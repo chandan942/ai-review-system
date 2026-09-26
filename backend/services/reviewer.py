@@ -68,17 +68,36 @@ async def review_code(code: str, language: str, mode: str = "comprehensive") -> 
     if review_result is None:
         fallback_name = settings.fallback_provider
         if fallback_name and fallback_name.lower() != "none" and fallback_name.lower() != primary_provider.provider_name:
-            try:
-                fallback_provider = get_provider(fallback_name)
-                logger.info(f"Triggering fallback provider '{fallback_provider.provider_name}'.")
-                review_result = await fallback_provider.review_code(code, language, mode)
-            except Exception as fb_err:
-                logger.error(f"Fallback provider '{fallback_name}' also failed: {fb_err}.")
+            if settings.fallback_on_failure:
+                try:
+                    fallback_provider = get_provider(fallback_name)
+                    logger.info(f"Triggering fallback provider '{fallback_provider.provider_name}'.")
+                    review_result = await fallback_provider.review_code(code, language, mode)
+
+                    # Log that we used fallback and show the primary error
+                    logger.warning(
+                        f"Review result came from FALLBACK provider '{fallback_provider.provider_name}' "
+                        f"because primary provider '{primary_provider.provider_name}' failed with: {primary_error}"
+                    )
+
+                    # Add a note to the metadata indicating this was a fallback result
+                    if review_result.metadata:
+                        review_result.metadata.provider = f"{fallback_provider.provider_name}_fallback_from_{primary_provider.provider_name}"
+                except Exception as fb_err:
+                    logger.error(f"Fallback provider '{fallback_name}' also failed: {fb_err}.")
+                    if isinstance(primary_error, ReviewError):
+                        raise primary_error
+                    raise ProviderUnavailableError(
+                        f"Both primary ('{primary_provider.provider_name}') and fallback ('{fallback_name}') failed."
+                    ) from fb_err
+            else:
+                # Fallback disabled - raise the primary error
+                logger.error(f"Fallback disabled. Primary provider '{primary_provider.provider_name}' failed.")
                 if isinstance(primary_error, ReviewError):
                     raise primary_error
                 raise ProviderUnavailableError(
-                    f"Both primary ('{primary_provider.provider_name}') and fallback ('{fallback_name}') failed."
-                ) from fb_err
+                    f"Primary provider '{primary_provider.provider_name}' failed and fallback is disabled."
+                ) from primary_error
         else:
             if isinstance(primary_error, ReviewError):
                 raise primary_error

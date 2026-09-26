@@ -1,12 +1,18 @@
 from functools import lru_cache
 from typing import Literal
+import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+logger = logging.getLogger("config")
 
 
 class Settings(BaseSettings):
     # Primary provider selection
     review_provider: Literal["gemini", "openai", "mock"] = "gemini"
     fallback_provider: Literal["openai", "mock", "none"] = "mock"
+    # Whether to automatically fallback on failure (set to False to require explicit opt-in)
+    fallback_on_failure: bool = True
 
     # Gemini settings
     gemini_api_key: str = ""
@@ -36,4 +42,21 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    # Log redacted API key for verification (show first 4 and last 4 chars)
+    if settings.gemini_api_key:
+        key = settings.gemini_api_key
+        if len(key) > 8:
+            redacted = f"{key[:4]}...{key[-4:]}"
+        else:
+            redacted = "****"
+        logger.info(f"Gemini API key loaded: {redacted} (length: {len(key)})")
+        # Validate Gemini API key format (should start with 'AIza')
+        if not key.startswith("AIza"):
+            logger.warning(
+                f"Gemini API key does not start with 'AIza'. Expected format: 'AIza...'. "
+                f"Got: {redacted}. This may cause authentication errors."
+            )
+    else:
+        logger.warning("GEMINI_API_KEY is not set. Using mock provider if configured.")
+    return settings

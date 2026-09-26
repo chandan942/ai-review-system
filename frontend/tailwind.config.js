@@ -9,9 +9,10 @@ export default {
     extend: {
       colors: {
         // Dark mode surface layering from web-design skill
-        'surface': '#090A0F',
-        'card': '#12151D',
-        'elevated': '#1B202D',
+        // Now using CSS variables that actually change with dark mode
+        'surface': 'hsl(var(--background))',
+        'card': 'hsl(var(--background))',
+        'elevated': 'hsl(var(--background))',
         'accent': '#3B82F6', // Blue accent for CTAs
         'critical': '#EF4444',
         'high': '#F59E0B',
