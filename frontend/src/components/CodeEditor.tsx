@@ -20,8 +20,6 @@ const languageMap: Record<SupportedLanguage, string> = {
   kotlin: 'kotlin',
 }
 
-const editorTheme = 'vs-dark'
-
 const CodeEditor: React.FC = () => {
   const { state, dispatch } = useApp()
   const editorRef = useRef<any>(null)
@@ -32,6 +30,9 @@ const CodeEditor: React.FC = () => {
   const lineCount = state.editorContent ? state.editorContent.split('\n').length : 1
   const charCount = state.editorContent ? state.editorContent.length : 0
   const isNearLimit = charCount > MAX_CODE_LENGTH * 0.9
+
+  // Dynamically adapt Monaco editor theme with dark/light mode toggle
+  const editorTheme = state.isDark ? 'vs-dark' : 'light'
 
   // Update editor language when selectedLanguage changes
   useEffect(() => {
@@ -45,6 +46,13 @@ const CodeEditor: React.FC = () => {
       }
     }
   }, [state.selectedLanguage])
+
+  // Update editor theme when state.isDark changes
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(editorTheme)
+    }
+  }, [editorTheme])
 
   // Handle line decorations for review issues
   useEffect(() => {
@@ -108,7 +116,7 @@ const CodeEditor: React.FC = () => {
     editor.onDidFocusEditorText(() => setIsFocused(true))
     editor.onDidBlurEditorText(() => setIsFocused(false))
 
-    // Set initial language
+    // Set initial language and theme
     const model = editor.getModel()
     if (model) {
       monaco.editor.setModelLanguage(
@@ -116,6 +124,7 @@ const CodeEditor: React.FC = () => {
         languageMap[state.selectedLanguage] || 'python'
       )
     }
+    monaco.editor.setTheme(editorTheme)
   }
 
   const handleEditorChange = (value: string | undefined) => {
@@ -128,30 +137,30 @@ const CodeEditor: React.FC = () => {
   return (
     <section
       aria-label="Code Editor"
-      className={`flex-1 flex flex-col bg-card/60 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-200 ${
-        isFocused ? 'border-accent/50 shadow-lg shadow-accent/5' : 'border-white/10'
+      className={`flex-1 flex flex-col bg-card border rounded-xl overflow-hidden transition-all duration-200 ${
+        isFocused ? 'border-accent/60 ring-2 ring-accent/10 shadow-md' : 'border-border'
       }`}
     >
       {/* Editor toolbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-elevated/80 border-b border-white/10 text-xs font-mono select-none">
-        <div className="flex items-center gap-2 text-gray-300">
-          <span className="px-2 py-0.5 rounded bg-accent/20 text-accent font-semibold uppercase tracking-wider">
+      <div className="flex items-center justify-between px-4 py-2 bg-elevated border-b border-border text-xs font-mono select-none">
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-0.5 rounded bg-accent/15 text-accent font-semibold uppercase tracking-wider text-[11px]">
             {state.selectedLanguage}
           </span>
-          <span className="text-gray-500">|</span>
-          <span className="text-gray-400">{lineCount} lines</span>
+          <span className="text-muted-foreground">|</span>
+          <span className="text-muted-foreground">{lineCount} lines</span>
         </div>
 
         <div className="flex items-center gap-3">
           <span
             className={`transition-colors duration-150 ${
-              isNearLimit ? 'text-amber-400 font-semibold' : 'text-gray-400'
+              isNearLimit ? 'text-amber-500 font-semibold' : 'text-muted-foreground'
             }`}
           >
             {charCount.toLocaleString()} / {MAX_CODE_LENGTH.toLocaleString()} chars
           </span>
           {isNearLimit && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 animate-pulse">
               Near Limit
             </span>
           )}
@@ -185,7 +194,7 @@ const CodeEditor: React.FC = () => {
             automaticLayout: true,
           }}
           loading={
-            <div className="flex items-center justify-center h-full text-gray-400 font-mono text-sm">
+            <div className="flex items-center justify-center h-full text-muted-foreground font-mono text-sm">
               <span className="animate-pulse">Loading Editor...</span>
             </div>
           }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AppProvider } from '../context/AppContext'
 import Header from './Header'
 import type { HealthResponse } from '../lib/types'
@@ -15,8 +15,10 @@ vi.mock('../lib/api', () => ({
   checkHealth: mockCheckHealth,
 }))
 
-const renderWithProviders = (ui: React.ReactElement) => {
-  return render(<AppProvider>{ui}</AppProvider>)
+const renderWithProviders = async (ui: React.ReactElement) => {
+  return await act(() => {
+    return render(<AppProvider>{ui}</AppProvider>)
+  })
 }
 
 describe('Header Component', () => {
@@ -28,15 +30,15 @@ describe('Header Component', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders app title in h1 element', () => {
-    renderWithProviders(<Header />)
+  it('renders app title in h1 element', async () => {
+    const { container } = await renderWithProviders(<Header />)
     const heading = screen.getByRole('heading', { level: 1 })
     expect(heading).toBeInTheDocument()
     expect(heading).toHaveTextContent('AI Code Reviewer')
   })
 
   it('calls health check on mount', async () => {
-    renderWithProviders(<Header />)
+    await renderWithProviders(<Header />)
 
     await new Promise(resolve => setTimeout(resolve, 50))
 
@@ -58,7 +60,7 @@ describe('Header Component', () => {
       )
     )
 
-    renderWithProviders(<Header />)
+    await renderWithProviders(<Header />)
 
     // Should show loading indicator immediately
     await waitFor(() => {
@@ -66,16 +68,15 @@ describe('Header Component', () => {
     })
 
     // Wait for health check to complete
-    await new Promise(resolve => setTimeout(resolve, 150))
-
-    // Should show health status after completion
-    expect(screen.getByText(/🟢 Gemini 2.5-Flash/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/🟢 Gemini 2.5-Flash/i)).toBeInTheDocument()
+    })
   })
 
   it('shows error state when health check fails', async () => {
     mockCheckHealth.mockRejectedValueOnce(new Error('Network error'))
 
-    renderWithProviders(<Header />)
+    await renderWithProviders(<Header />)
 
     // Wait for error message to appear
     await waitFor(() => {
@@ -86,7 +87,7 @@ describe('Header Component', () => {
   it('disables interactive elements during health check loading', async () => {
     mockCheckHealth.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)))
 
-    renderWithProviders(<Header />)
+    await renderWithProviders(<Header />)
 
     // During loading, buttons and select should be disabled
     const modeButton = screen.getByRole('button', { name: /Security/i })
@@ -103,8 +104,8 @@ describe('Header Component', () => {
     expect(languageSelect).not.toBeDisabled()
   })
 
-  it('renders all review mode buttons', () => {
-    renderWithProviders(<Header />)
+  it('renders all review mode buttons', async () => {
+    await renderWithProviders(<Header />)
 
     expect(screen.getByRole('button', { name: /Comprehensive/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Security/i })).toBeInTheDocument()
@@ -112,8 +113,8 @@ describe('Header Component', () => {
     expect(screen.getByRole('button', { name: /Style/i })).toBeInTheDocument()
   })
 
-  it('highlights the selected review mode', () => {
-    renderWithProviders(<Header />)
+  it('highlights the selected review mode', async () => {
+    await renderWithProviders(<Header />)
 
     const comprehensiveButton = screen.getByRole('button', { name: /Comprehensive/i })
     const securityButton = screen.getByRole('button', { name: /Security/i })
@@ -134,7 +135,7 @@ describe('Header Component', () => {
       version: '1.0.0',
     })
 
-    renderWithProviders(<Header />)
+    await renderWithProviders(<Header />)
 
     // Wait for the health check to complete (so that the buttons are not disabled)
     await waitFor(() => {
@@ -156,16 +157,16 @@ describe('Header Component', () => {
     expect(comprehensiveButton).not.toHaveClass('bg-accent/20')
   })
 
-  it('renders language selector with aria-label', () => {
-    renderWithProviders(<Header />)
+  it('renders language selector with aria-label', async () => {
+    await renderWithProviders(<Header />)
 
     const select = screen.getByLabelText(/select programming language/i)
     expect(select).toBeInTheDocument()
     expect(select).toHaveValue('python')
   })
 
-  it('renders all supported languages in the dropdown', () => {
-    renderWithProviders(<Header />)
+  it('renders all supported languages in the dropdown', async () => {
+    await renderWithProviders(<Header />)
 
     const select = screen.getByLabelText(/select programming language/i) as HTMLSelectElement
     const options = Array.from(select.options).map((opt) => opt.value)
@@ -184,8 +185,8 @@ describe('Header Component', () => {
     expect(options).toContain(SupportedLanguage.KOTLIN)
   })
 
-  it('allows changing language via dropdown', () => {
-    renderWithProviders(<Header />)
+  it('allows changing language via dropdown', async () => {
+    await renderWithProviders(<Header />)
 
     const select = screen.getByLabelText(/select programming language/i)
     fireEvent.change(select, { target: { value: 'javascript' } })
@@ -193,20 +194,20 @@ describe('Header Component', () => {
     expect(select).toHaveValue('javascript')
   })
 
-  it('uses semantic HTML header element', () => {
-    const { container } = renderWithProviders(<Header />)
+  it('uses semantic HTML header element', async () => {
+    const { container } = await renderWithProviders(<Header />)
     const header = container.querySelector('header')
     expect(header).toBeInTheDocument()
   })
 
-  it('applies correct interactive states to mode buttons', () => {
-    renderWithProviders(<Header />)
+  it('applies correct interactive states to mode buttons', async () => {
+    await renderWithProviders(<Header />)
 
     const securityButton = screen.getByRole('button', { name: /Security/i })
 
     expect(securityButton).toHaveClass('transition-all')
     expect(securityButton).toHaveClass('duration-150')
-    expect(securityButton).toHaveClass('hover:bg-bg/10')
+    expect(securityButton).toHaveClass('hover:text-foreground')
     expect(securityButton).toHaveClass('focus-visible:outline-none')
     expect(securityButton).toHaveClass('focus-visible:ring-2')
     expect(securityButton).toHaveClass('active:scale-[0.98]')
@@ -214,21 +215,23 @@ describe('Header Component', () => {
     expect(securityButton).toHaveClass('disabled:cursor-not-allowed')
   })
 
-  it('applies correct interactive states to language select', () => {
-    renderWithProviders(<Header />)
+  it('applies correct interactive states to language select', async () => {
+    await renderWithProviders(<Header />)
 
     const select = screen.getByLabelText(/select programming language/i)
 
     expect(select).toHaveClass('focus:outline-none')
     expect(select).toHaveClass('focus:ring-2')
-    expect(select).toHaveClass('focus:ring-accent/50')
+    expect(select).toHaveClass('focus:border-accent/40')
     expect(select).toHaveClass('active:scale-[0.98]')
     expect(select).toHaveClass('disabled:opacity-50')
     expect(select).toHaveClass('disabled:cursor-not-allowed')
   })
 
-  it('is responsive with mobile-first layout', () => {
-    const { container } = renderWithProviders(<Header />)
+  it('is responsive with mobile-first layout', async () => {
+    await renderWithProviders(<Header />)
+
+    const { container } = await renderWithProviders(<Header />)
     const header = container.querySelector('header')
 
     expect(header).toHaveClass('flex')
@@ -236,16 +239,16 @@ describe('Header Component', () => {
     expect(header).toHaveClass('sm:flex-row')
   })
 
-  it('includes system status display area', () => {
-    renderWithProviders(<Header />)
+  it('includes system status display area', async () => {
+    await renderWithProviders(<Header />)
 
     // Header should have the structure for displaying system status
     const header = screen.getByRole('banner')
     expect(header).toBeInTheDocument()
   })
 
-  it('mode buttons have proper aria-pressed state', () => {
-    renderWithProviders(<Header />)
+  it('mode buttons have proper aria-pressed state', async () => {
+    await renderWithProviders(<Header />)
 
     const comprehensiveButton = screen.getByRole('button', { name: /Comprehensive/i })
     const securityButton = screen.getByRole('button', { name: /Security/i })
@@ -254,8 +257,8 @@ describe('Header Component', () => {
     expect(securityButton).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('language select has proper label association', () => {
-    renderWithProviders(<Header />)
+  it('language select has proper label association', async () => {
+    await renderWithProviders(<Header />)
 
     const select = screen.getByLabelText(/select programming language/i)
     expect(select).toHaveAttribute('id', 'language-select')

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Gemini settings
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash"  # Active Google Gemini model
 
     # OpenAI / OpenRouter settings
     openai_api_key: str = ""
@@ -43,20 +43,10 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     settings = Settings()
-    # Log redacted API key for verification (show first 4 and last 4 chars)
     if settings.gemini_api_key:
         key = settings.gemini_api_key
-        if len(key) > 8:
-            redacted = f"{key[:4]}...{key[-4:]}"
-        else:
-            redacted = "****"
+        redacted = f"{key[:4]}...{key[-4:]}" if len(key) > 8 else "****"
         logger.info(f"Gemini API key loaded: {redacted} (length: {len(key)})")
-        # Validate Gemini API key format (should start with 'AIza')
-        if not key.startswith("AIza"):
-            logger.warning(
-                f"Gemini API key does not start with 'AIza'. Expected format: 'AIza...'. "
-                f"Got: {redacted}. This may cause authentication errors."
-            )
     else:
         logger.warning("GEMINI_API_KEY is not set. Using mock provider if configured.")
     return settings

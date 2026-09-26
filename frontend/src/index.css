@@ -7,19 +7,27 @@
   --font-sans: 'Geist', 'Inter', 'SF Pro Text', 'system-ui', sans-serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', 'SF Mono', monospace;
   /* Light mode colors */
-  --background: 0 0% 100%; /* white */
-  --foreground: 222.2 84% 4.9%; /* dark gray */
+  --background: 210 20% 98%;      /* #F8FAFC */
+  --foreground: 222.2 47.4% 11.2%; /* #0F172A */
+  --card: 0 0% 100%;              /* #FFFFFF */
+  --elevated: 210 20% 93%;        /* #E9EEF4 */
+  --border: 214.3 31.8% 85%;      /* #CBD5E1 */
+  --muted-foreground: 215.4 16.3% 46.9%; /* #64748B */
 }
 
 /* Dark mode overrides */
 .dark {
-  --background: 222.2 84% 4.9%; /* dark gray */
-  --foreground: 0 0% 100%; /* white */
+  --background: 228 25% 4%;       /* #090A0F */
+  --foreground: 210 40% 98%;      /* #F8FAFC */
+  --card: 223 23% 9%;             /* #12151D */
+  --elevated: 222 25% 14%;         /* #1B202D */
+  --border: 217.2 32.6% 17.5%;     /* #1E293B */
+  --muted-foreground: 215 20.2% 65.1%; /* #94A3B8 */
 }
 
 /* Focus styles - ensure visible focus indicators */
 :focus-visible {
-  outline: 2px solid hsl(var(--background, 0 0% 100%) / 0.3); /* Semi-transparent */
+  outline: 2px solid #3B82F6;
   outline-offset: 2px;
 }
 
@@ -28,8 +36,8 @@
   position: absolute;
   top: -40px;
   left: 0;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
   padding: 8px;
   z-index: 100;
 }
@@ -47,42 +55,11 @@
   }
 }
 
-/* Dark mode overrides */
-.dark {
-  --background: 222.2 84% 4.9%; /* dark gray */
-  --foreground: 0 0% 100%; /* white */
-}
-
-/* Ensure sufficient contrast */
-.text-muted-foreground {
-  @apply text-gray-400;
-}
-
-/* Loading spinner accessibility */
-[aria-busy="true"] {
-  /* Ensure screen readers announce loading state */
-}
-
-/* Error message styling */
-[role="alert"] {
-  @apply bg-red-500/10 text-red-400 rounded-lg p-4 mb-4;
-}
-
-/* Ensure touch targets are minimum 44x44px */
-button, [role="button"] {
-  @apply min-h-[44px] min-w-[44px];
-}
-
-/* Form label association */
-label {
-  @apply block text-sm font-medium mb-1;
-}
-
-/* Custom base styles */
+/* Base body */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  @apply bg-surface text-white font-sans antialiased;
+  @apply font-sans antialiased min-h-screen transition-colors duration-200;
 }
 
 h1, h2, h3, h4, h5, h6 {

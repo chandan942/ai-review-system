@@ -37,7 +37,7 @@ const IssueCard: React.FC<IssueCardProps> = ({ issue }) => {
   }
 
   return (
-    <div className="p-4 flex flex-col gap-2">
+    <div className="p-4 flex flex-col gap-2 hover:bg-bg/10 transition-colors">
       <div className="flex items-start gap-3">
         <div className={`w-2 h-2 rounded-full ${getSeverityClasses(issue.severity)} flex-shrink-0 mt-0.5`} />
         <div className="flex-1">
@@ -53,13 +53,13 @@ const IssueCard: React.FC<IssueCardProps> = ({ issue }) => {
           <div className="mt-2 flex gap-2">
             <button
               onClick={handleCopyFix}
-              className="px-3 py-1 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]"
+              className="px-3 py-1 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] transition-colors"
             >
               Copy Fix
             </button>
             <button
               onClick={handleHighlight}
-              className="px-3 py-1 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]"
+              className="px-3 py-1 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98] transition-colors"
             >
               Highlight in Code
             </button>

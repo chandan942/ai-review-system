@@ -63,8 +63,42 @@ const ReviewDashboard: React.FC = () => {
   ) || []
 
   // Check if result came from fallback/mock provider
-  const isFallbackResult = state.reviewResult?.metadata.provider.includes('_fallback') ||
+  const isFallbackResult = state.reviewResult?.metadata.provider.includes('_fallback_from') ||
                           state.reviewResult?.metadata.provider.includes('mock')
+
+  // Extract human-readable provider info for display
+  const getProviderDisplayInfo = () => {
+    const provider = state.reviewResult?.metadata.provider || ''
+
+    // If it's a fallback result, extract the details
+    if (provider.includes('_fallback_from')) {
+      const parts = provider.split('_fallback_from')
+      const actualProvider = parts[0].replace(/_/g, ' ')
+      const fallbackReason = parts[1] || ''
+
+      return {
+        isFallback: true,
+        provider: actualProvider,
+        reason: fallbackReason.startsWith('reason:') ? fallbackReason.substring(7) : 'Unknown error'
+      }
+    }
+
+    // If it's mock provider
+    if (provider === 'mock') {
+      return {
+        isFallback: true,
+        provider: 'Mock',
+        reason: 'Gemini API unavailable'
+      }
+    }
+
+    // Regular provider
+    return {
+      isFallback: false,
+      provider: provider.charAt(0).toUpperCase() + provider.slice(1),
+      reason: ''
+    }
+  }
 
   return (
     <>
@@ -152,9 +186,10 @@ const ReviewDashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <span className="text-xl">⚠️</span>
               <div>
-                <p className="font-medium">Review result from fallback provider</p>
-                <p className="text-sm text-red-400">
-                  {state.reviewResult?.metadata.provider.replace('_fallback_from', ' → Fallback from ')}
+                <p className="font-medium">
+                  {getProviderDisplayInfo().isFallback
+                    ? `${getProviderDisplayInfo().provider} API call failed (${getProviderDisplayInfo().reason}) — showing mock result instead`
+                    : 'Review result from fallback provider'}
                 </p>
               </div>
             </div>
@@ -248,7 +283,9 @@ const ReviewDashboard: React.FC = () => {
                 <p className="mt-1 text-xs text-muted-foreground">
                   {state.reviewResult.metadata.lines_reviewed} lines analyzed •
                   {state.reviewResult.metadata.review_time_ms}ms •
-                  {state.reviewResult.metadata.provider.toUpperCase()} •
+                  {getProviderDisplayInfo().isFallback
+                    ? `${getProviderDisplayInfo().provider} (fallback)`
+                    : `${getProviderDisplayInfo().provider.toUpperCase()} •`}
                   {state.reviewResult.metadata.cached ? '(Cached)' : '(Fresh)'}
                 </p>
               </div>

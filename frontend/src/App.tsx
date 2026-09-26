@@ -95,12 +95,12 @@ const App: React.FC = () => {
         Skip to main content
       </a>
 
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-bg via-bg/50 to-bg">
+      <div className="min-h-screen flex flex-col bg-surface text-foreground transition-colors duration-200">
         <Header />
 
-        <main id="main-content" className="flex-1 flex p-6 gap-6 overflow-hidden">
+        <main id="main-content" className="flex-1 flex flex-col lg:flex-row p-6 gap-6 overflow-hidden">
           {/* Code Editor Column */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-[400px]">
             <form
               onSubmit={handleSubmit}
               onKeyDown={handleKeyDown}
@@ -112,10 +112,10 @@ const App: React.FC = () => {
                   type="submit"
                   disabled={state.isLoading || isSubmitting || !state.editorContent.trim()}
                   className={`
-                    px-6 py-3 text-lg font-medium rounded transition-all duration-200
+                    px-6 py-3 text-base font-semibold rounded-lg transition-all duration-200 shadow-sm
                     ${state.isLoading || isSubmitting
-                      ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed'
-                      : 'bg-accent/20 text-accent hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed'
+                      ? 'bg-muted-foreground/20 text-muted-foreground cursor-not-allowed'
+                      : 'bg-accent text-white hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 active:scale-[0.98]'
                     }
                   `}
                 >
@@ -123,7 +123,7 @@ const App: React.FC = () => {
                 </button>
 
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span>Ctrl+Enter to submit</span>
+                  <span className="hidden sm:inline">Ctrl+Enter to submit</span>
                   {!state.isLoading && !isSubmitting && (
                     <button
                       type="button"
@@ -132,7 +132,7 @@ const App: React.FC = () => {
                         dispatch({ type: 'SET_REVIEW_RESULT', payload: null })
                         dispatch({ type: 'SET_ERROR', payload: null })
                       }}
-                      className="px-3 py-1.5 text-xs font-medium rounded hover:bg-bg/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bg/20 active:scale-[0.98]"
+                      className="px-3 py-1.5 text-xs font-medium rounded hover:bg-elevated text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 active:scale-[0.98] transition-colors"
                     >
                       Clear
                     </button>
@@ -143,7 +143,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Review Column */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-[400px]">
             {state.viewMode === 'history' ? (
               <ReviewHistory />
             ) : (

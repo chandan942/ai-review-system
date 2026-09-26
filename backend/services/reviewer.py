@@ -1,6 +1,6 @@
 from typing import Optional
 from backend.config import get_settings
-from backend.exceptions import ProviderError, ProviderUnavailableError, ReviewError
+from backend.exceptions import ProviderUnavailableError, ReviewError
 from backend.models import ReviewResponse
 from backend.services.cache import get_cache
 from backend.services.providers.base import BaseReviewProvider
@@ -59,9 +59,9 @@ async def review_code(code: str, language: str, mode: str = "comprehensive") -> 
         review_result = await primary_provider.review_code(code, language, mode)
     except Exception as e:
         primary_error = e
-        logger.warning(
-            f"Primary provider '{primary_provider.provider_name}' failed: {e}. "
-            f"Evaluating fallback..."
+        logger.error(
+            f"Primary provider '{primary_provider.provider_name}' failed: {e}",
+            exc_info=True,
         )
 
     # 3. Fallback cascade if primary provider failed
@@ -74,24 +74,25 @@ async def review_code(code: str, language: str, mode: str = "comprehensive") -> 
                     logger.info(f"Triggering fallback provider '{fallback_provider.provider_name}'.")
                     review_result = await fallback_provider.review_code(code, language, mode)
 
-                    # Log that we used fallback and show the primary error
+                    err_msg = str(primary_error) if primary_error else "Unknown error"
+                    # Keep error message concise for metadata
+                    short_err = err_msg if len(err_msg) <= 120 else err_msg[:117] + "..."
+
                     logger.warning(
-                        f"Review result came from FALLBACK provider '{fallback_provider.provider_name}' "
-                        f"because primary provider '{primary_provider.provider_name}' failed with: {primary_error}"
+                        f"Review served via fallback '{fallback_provider.provider_name}' "
+                        f"because '{primary_provider.provider_name}' failed: {err_msg}"
                     )
 
-                    # Add a note to the metadata indicating this was a fallback result
                     if review_result.metadata:
-                        review_result.metadata.provider = f"{fallback_provider.provider_name}_fallback_from_{primary_provider.provider_name}"
+                        review_result.metadata.provider = f"{fallback_provider.provider_name}_fallback_from_{primary_provider.provider_name}:{short_err}"
                 except Exception as fb_err:
-                    logger.error(f"Fallback provider '{fallback_name}' also failed: {fb_err}.")
+                    logger.error(f"Fallback provider '{fallback_name}' also failed: {fb_err}", exc_info=True)
                     if isinstance(primary_error, ReviewError):
                         raise primary_error
                     raise ProviderUnavailableError(
                         f"Both primary ('{primary_provider.provider_name}') and fallback ('{fallback_name}') failed."
                     ) from fb_err
             else:
-                # Fallback disabled - raise the primary error
                 logger.error(f"Fallback disabled. Primary provider '{primary_provider.provider_name}' failed.")
                 if isinstance(primary_error, ReviewError):
                     raise primary_error

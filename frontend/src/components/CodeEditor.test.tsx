@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { AppProvider, useApp } from '../context/AppContext'
 import CodeEditor from './CodeEditor'
 import { SupportedLanguage, IssueSeverity } from '../lib/types'
@@ -39,6 +39,7 @@ vi.mock('@monaco-editor/react', () => {
         },
         editor: {
           setModelLanguage: vi.fn(),
+          setTheme: vi.fn(),
           OverviewRulerLane: { Left: 1 },
         },
       }
@@ -114,12 +115,26 @@ describe('CodeEditor Component', () => {
     renderWithProvider(<CodeEditor />)
     const section = screen.getByRole('region', { name: /Code Editor/i })
 
-    expect(section).toHaveClass('border-white/10')
+    // Initially, should have unfocused styling
+    expect(section).toHaveClass('border-border')
+    expect(section).not.toHaveClass('border-accent/60')
+    expect(section).not.toHaveClass('ring-2')
+    expect(section).not.toHaveClass('ring-accent/10')
+    expect(section).not.toHaveClass('shadow-md')
 
     // Simulate focus
     if (mockEditorInstance._focusCb) {
-      mockEditorInstance._focusCb()
+      act(() => {
+        mockEditorInstance._focusCb()
+      })
     }
+
+    // After focus, should have focused styling
+    expect(section).toHaveClass('border-accent/60')
+    expect(section).toHaveClass('ring-2')
+    expect(section).toHaveClass('ring-accent/10')
+    expect(section).toHaveClass('shadow-md')
+    expect(section).not.toHaveClass('border-border')
   })
 
   it('updates Monaco model language when selectedLanguage changes', () => {
