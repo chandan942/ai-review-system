@@ -3,8 +3,6 @@ import hmac
 import hashlib
 import os
 import logging
-from typing import Optional, List, Dict
-import httpx
 
 from backend.services.git_service import GitHubService
 from backend.services.reviewer import review_code
@@ -18,7 +16,7 @@ router = APIRouter()
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 
 
-def verify_signature(payload_body: bytes, signature_header: Optional[str]) -> bool:
+def verify_signature(payload_body: bytes, signature_header: str | None) -> bool:
     """Verify that the payload was sent from GitHub by validating SHA256 signature."""
     if not GITHUB_WEBHOOK_SECRET:
         # If no secret is set, skip verification (for testing)
@@ -68,7 +66,7 @@ async def get_file_language_from_path(file_path: str) -> SupportedLanguage:
 
 
 @router.post("/webhook/github")
-async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = Header(None)):
+async def github_webhook(request: Request, x_hub_signature_256: str | None = Header(None)):
     """Handle incoming GitHub webhook events."""
     # Get the raw body for signature verification
     payload_body = await request.body()
@@ -181,7 +179,7 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-def format_pr_comment(review_results: List[Dict], pull_number: int) -> str:
+def format_pr_comment(review_results: list[dict], pull_number: int) -> str:
     """Format review results into a GitHub PR comment."""
     lines = [
         f"## 🤖 AI Code Review for PR #{pull_number}",
